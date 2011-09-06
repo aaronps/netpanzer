@@ -82,9 +82,9 @@ protected:
     VehicleSelectionView * p;
 public:
     UnitSelectionButton(VehicleSelectionView * vsv, const char *cname, int unit_type, int x, int y, const Surface &s)
-        : Button(cname), unitType(unit_type), p(vsv)
+        : Button(), unitType(unit_type), p(vsv)
     {
-        bimage.copy(s);
+        bimage.pack(s);
         setSize( bimage.getWidth(), bimage.getHeight());
         setLocation(x, y);
         setUnitSelectionBorder();
@@ -181,7 +181,7 @@ VehicleSelectionView::VehicleSelectionView() : GameTemplateView()
 
     pos.x = getClientRect().getSizeX() - 100;
     if ( !buttonStaticDisplay )
-        buttonStaticDisplay = new Button( "ButtonStaticDisplay");
+        buttonStaticDisplay = new Button();
     buttonStaticDisplay->setLabel("On");
     buttonStaticDisplay->setLocation(pos.x, pos.y);
     buttonStaticDisplay->setSize( 100, 15);
@@ -194,7 +194,7 @@ VehicleSelectionView::VehicleSelectionView() : GameTemplateView()
 
     pos.x = getClientRect().getSizeX() - 100;
     if ( !buttonPower )
-        buttonPower = new Button( "ButtonPower");
+        buttonPower = new Button();
     
     buttonPower->setLabel("Off");
     buttonPower->setLocation(pos.x,pos.y);
@@ -273,7 +273,7 @@ VehicleSelectionView::VehicleSelectionView() : GameTemplateView()
 
     pos.x = (getClientRect().getSizeX() - 100) / 2;
     if ( !buttonOk )
-        buttonOk = new Button( "buttonClose");
+        buttonOk = new Button();
     
     buttonOk->setLabel("Close");
     buttonOk->setLocation(pos.x,pos.y);
@@ -421,7 +421,7 @@ void VehicleSelectionView::doDraw(Surface &viewArea, Surface &clientArea)
     //sprintf(strBuf, "%01d:%02d", ( (int) outpost_status.unit_generation_time_remaining ) / 60, ( (int) outpost_status.unit_generation_time_remaining) % 60 );
     //clientArea.bltString(timeRemainingPos, strBuf, color);
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 
 } // end VehicleSelectionView::doDraw
 

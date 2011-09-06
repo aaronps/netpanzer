@@ -123,7 +123,7 @@ ServerListView::doDraw(Surface& windowArea, Surface& clientArea)
             msg = "Resolving masterserver address";
         }
         clientArea.bltString(0, 0, msg, Color::white);
-        View::doDraw(windowArea, clientArea);
+//        View::doDraw(windowArea, clientArea);
         return;
     }
 
@@ -156,12 +156,12 @@ ServerListView::doDraw(Surface& windowArea, Surface& clientArea)
             
             Uint8 textcolor = Color::white;
             
-            if (servaddr.str()==IPAddressView::szServer.getString()) {
-                textcolor = Color::yellow;
-                clientArea.fillRect(
-                    iRect(0,y,clientArea.getWidth(),y+Surface::getFontHeight()),
-                    Color::blue);
-            }
+//            if (servaddr.str()==IPAddressView::szServer.getString()) {
+//                textcolor = Color::yellow;
+//                clientArea.fillRect(
+//                    iRect(0,y,clientArea.getWidth(),y+Surface::getFontHeight()),
+//                    Color::blue);
+//            }
 
             char ssn[44];
             SDL_strlcpy(ssn, server.name.c_str(), sizeof(ssn));
@@ -177,10 +177,10 @@ ServerListView::doDraw(Surface& windowArea, Surface& clientArea)
             break;                             
     }
 
-    View::doDraw(windowArea, clientArea);
+//    View::doDraw(windowArea, clientArea);
 }
 
-int
+void
 ServerListView::lMouseUp(const iXY& down_pos, const iXY& up_pos)
 {
     if(down_pos.x < 0 || down_pos.y < 0 || up_pos.x < 0 || up_pos.y < 0)
@@ -194,8 +194,6 @@ ServerListView::lMouseUp(const iXY& down_pos, const iXY& up_pos)
     const masterserver::ServerInfo& server = *(serverlist[listpos]);
     std::stringstream addr;
     addr << server.address << ':' << server.port;
-    IPAddressView::szServer.setString(addr.str());
-    
-    return View::lMouseUp(down_pos, up_pos);
+//    IPAddressView::szServer.setString(addr.str());
 }
 

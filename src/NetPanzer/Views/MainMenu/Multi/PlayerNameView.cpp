@@ -53,11 +53,11 @@ PlayerNameView::~PlayerNameView()
 //---------------------------------------------------------------------------
 void PlayerNameView::init()
 {
-    playerName.init(gameconfig->playername.c_str(), INPUT_FIELD_CHARACTERS);
-    cInputField* input 
-        = addInputField(iXY(BORDER_SPACE, BORDER_SPACE), &playerName, "", true);
-    input->setTextAction(textChanged);
-    input->setExcludedCharacters("\\");
+//    playerName.init(gameconfig->playername.c_str(), INPUT_FIELD_CHARACTERS);
+//    cInputField* input
+//        = addInputField(iXY(BORDER_SPACE, BORDER_SPACE), &playerName, "", true);
+//    input->setTextAction(textChanged);
+//    input->setExcludedCharacters("\\");
 } // end PlayerNameView::init
 
 // doDraw
@@ -67,11 +67,11 @@ void PlayerNameView::doDraw(Surface &viewArea, Surface &clientArea)
     //iRect r(getViewRect());
     //viewArea.bltLookup(r, Palette::darkGray256.getColorArray());
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 } // end PlayerNameView::doDraw
 
-void PlayerNameView::textChanged(cInputField* input)
-{
-    gameconfig->playername = input->getDestString();
-}
+//void PlayerNameView::textChanged(cInputField* input)
+//{
+//    gameconfig->playername = input->getDestString();
+//}
 

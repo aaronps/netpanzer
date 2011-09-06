@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Views/Components/Component.hpp"
 #include "Interfaces/MapInterface.hpp"
 #include "Util/NTimer.hpp"
+#include "Util/Log.hpp"
 
 class MiniMap : public Component, public MapEventListener
 {
@@ -32,11 +33,6 @@ public:
     virtual ~MiniMap();
     
     void draw(Surface &dest);
-    
-    virtual void render()
-    {
-        // nothing
-    }
     
     void actionPerformed(const mMouseEvent &me);
     
@@ -60,6 +56,7 @@ private:
     float yratio;
     NTimer blinktimer;
     bool blinkstatus;
+    Surface surface;
 };
 
 #endif	/* _MINIMAP_HPP */

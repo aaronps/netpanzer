@@ -151,7 +151,7 @@ void LibView::doDraw(Surface &viewArea, Surface &clientArea)
         break;
     }
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 
 } // end LibView::doDraw
 

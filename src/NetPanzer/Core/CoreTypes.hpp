@@ -39,6 +39,10 @@ typedef Uint16 ObjectiveID;
 
 typedef Uint16 UnitID;
 
+typedef Uint8 ColorType;
+
+#define NoColor 255
+
 typedef Uint8 FlagID;
 #define FLAG_WIDTH 20
 #define FLAG_HEIGHT 14

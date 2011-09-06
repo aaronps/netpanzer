@@ -33,7 +33,7 @@ public:
     void endQuery();
         
     virtual void doDraw(Surface& windowArea, Surface& clientArea);
-    virtual int lMouseUp(const iXY& up_pos, const iXY& down_pos);
+    virtual void lMouseUp(const iXY& up_pos, const iXY& down_pos);
 
 private:
     masterserver::ServerList serverlist;

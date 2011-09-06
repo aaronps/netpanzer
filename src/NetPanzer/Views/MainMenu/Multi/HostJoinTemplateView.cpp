@@ -60,7 +60,7 @@ static void bBack()
             SERVER->closeSession();
         }
 
-    Desktop::setVisibilityAllWindows(false);
+    Desktop::hideAllWindows();
     Desktop::setVisibility("GetSessionView", true);
 }
 
@@ -76,20 +76,20 @@ static void bNext()
     if (MapSelectionView::curMap == -1) {
         return;
     }
-    if (gameconfig->hostorjoin == _game_session_join &&
-        strcmp(IPAddressView::szServer.getString(), "") == 0)
-        return;
+//    if (gameconfig->hostorjoin == _game_session_join &&
+//        strcmp(IPAddressView::szServer.getString(), "") == 0)
+//        return;
 
     // Set the player flag.
     // XXX FLAG
     //gameconfig->playerflag = FlagSelectionView::getSelectedFlag();
 
     // Close all menu views.
-    Desktop::setVisibilityAllWindows(false);
+    Desktop::hideAllWindows();
 
-    if(gameconfig->hostorjoin == _game_session_join) {
-        gameconfig->serverConnect = IPAddressView::szServer.getString();
-    }
+//    if(gameconfig->hostorjoin == _game_session_join) {
+//        gameconfig->serverConnect = IPAddressView::szServer.getString();
+//    }
     
     serverlistview->endQuery();
 
@@ -128,7 +128,7 @@ void HostJoinTemplateView::doDraw(Surface &viewArea, Surface &clientArea)
 {
     MenuTemplateView::doDraw(viewArea, clientArea);
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 } // end doDraw
 
 // doActivate

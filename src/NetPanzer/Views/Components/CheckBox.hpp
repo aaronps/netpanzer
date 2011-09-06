@@ -22,8 +22,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Component.hpp"
 #include "MouseEvent.hpp"
 #include "Util/Log.hpp"
-
-class StateChangedCallback;
+#include "Core/CoreTypes.hpp"
+#include "Util/MinSignal.hpp"
 
 //--------------------------------------------------------------------------
 class CheckBox : public Component
@@ -31,31 +31,32 @@ class CheckBox : public Component
 protected:
     std::string label;
     bool   state;
-    StateChangedCallback* callback;
 
     PIX textColor;
-
-    void render();
+    PIX backgroundColor;
+    virtual void draw(Surface &dest);
 
 public:
-    CheckBox(StateChangedCallback* newcallback = 0)
-            : Component(), state(false), callback(newcallback)
+    CheckBox()
+            : Component(), state(false)
     {
         setSize( 14, 14);
         textColor = Color::white;
     }
 
     CheckBox(const std::string& newlabel, bool newstate = false)
-            : Component(), label(newlabel), state(newstate), callback(0)
+            : Component(), label(newlabel), state(newstate)
     {
         setSize( 14+label.length()*8, 14);
         textColor = Color::white;
-        dirty = true;
+        backgroundColor = Color::brown;
     }
 
     virtual ~CheckBox()
     {
     }
+
+    MinSignal stateChanged;
 
     const std::string& getLabel() const
     {
@@ -70,15 +71,10 @@ public:
     {
         CheckBox::label = label;
         setSize( 14+label.length()*8, 14);
-        dirty = true;
     }
     void setState(bool state)
     {
         CheckBox::state = state;
-    }
-    void setStateChangedCallback(StateChangedCallback* newcallback)
-    {
-        callback = newcallback;
     }
 
     virtual void actionPerformed(const mMouseEvent &me);

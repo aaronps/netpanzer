@@ -133,7 +133,7 @@ void GameView::doDraw(Surface &va, Surface &clientArea)
     // Make sure the console info is the last thing drawn.
     ConsoleInterface::update(clientArea);
     
-    View::doDraw(va, clientArea);
+//    View::doDraw(va, clientArea);
 } // end GameView::doDraw
 
 // lMouseDown

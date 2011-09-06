@@ -19,16 +19,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define __MainMenuView_hpp__
 
 #include "Views/Components/View.hpp"
-#include "2D/Surface.hpp"
-#include "Views/MainMenu/MenuTemplateView.hpp"
 
 //--------------------------------------------------------------------------
-class MainMenuView : public MenuTemplateView
+class MainMenuView : public View
 {
 public:
     MainMenuView();
 
-    virtual void doDraw(Surface &windowArea, Surface &clientArea);
+
+private:
+    iRect textRect;
+    void onExitButtonClicked();
 }; // end MainMenuView
 
 #endif // end __MainMenuView_hpp__

@@ -134,7 +134,7 @@ void MapSelectionView::doDraw(Surface &viewArea, Surface &clientArea)
         drawCurMapInfo(clientArea, iXY(MAP_SIZE + BORDER_SPACE * 2, BORDER_SPACE));
     }
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 
 } // end MapSelectionView::doDraw
 

@@ -36,13 +36,10 @@ public:
         position.x = x;
         position.y = y;
     }
+
+    void setText(const string& text) { this->text = text; }
     
     void draw(Surface &dest);
-    
-    virtual void render()
-    {
-        // nothing
-    }
     
     void actionPerformed(const mMouseEvent &me)
     {
@@ -52,6 +49,8 @@ public:
 private:
     string text;
     bool shadowed;
+    PIX foreground;
+    PIX background;
 };
 
 #endif

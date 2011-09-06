@@ -114,7 +114,7 @@ void SoundView::initButtons()
     checkBoxSoundEnabled->setState(gameconfig->enablesound);
     x += Surface::getTextLength("Sound Status: ");
     checkBoxSoundEnabled->setLocation(x, y-2);
-    checkBoxSoundEnabled->setStateChangedCallback(this);
+    checkBoxSoundEnabled->stateChanged.connect(this, &SoundView::onSoundCheckBoxModified);
     add(checkBoxSoundEnabled);
     y += yOffset;
 
@@ -134,7 +134,7 @@ void SoundView::initButtons()
     checkBoxMusicEnabled->setState(gameconfig->enablemusic);
     x += Surface::getTextLength("Music Status: ");
     checkBoxMusicEnabled->setLocation(x, y-2);
-    checkBoxMusicEnabled->setStateChangedCallback(this);
+    checkBoxMusicEnabled->stateChanged.connect(this, &SoundView::onMusicCheckBoxModified);
     add(checkBoxMusicEnabled);
     y += yOffset;
 
@@ -209,35 +209,35 @@ void SoundView::loadTitleSurface()
 
 } // end SoundView::loadTitleSurface
 
-void SoundView::stateChanged(Component* source)
+void SoundView::onSoundCheckBoxModified()
 {
-    if (source == checkBoxSoundEnabled) {
-        gameconfig->enablesound = checkBoxSoundEnabled->getState();
-        
-        delete sound;
+    gameconfig->enablesound = checkBoxSoundEnabled->getState();
 
-        if ( checkBoxSoundEnabled->getState() ) {
-            sound = new SDLSound();
-            checkBoxSoundEnabled->setLabel("Enabled");
-            if ( GameControlRulesDaemon::getGameState() ) {
-                sound->playTankIdle();
-            }
-            if ( checkBoxMusicEnabled->getState() )
-                sound->playMusic("sound/music/");
-        } else {
-            sound = new DummySound();
-            checkBoxSoundEnabled->setLabel("Disabled");
+    delete sound;
+
+    if ( checkBoxSoundEnabled->getState() ) {
+        sound = new SDLSound();
+        checkBoxSoundEnabled->setLabel("Enabled");
+        if ( GameControlRulesDaemon::getGameState() ) {
+            sound->playTankIdle();
         }
-    } else if (source == checkBoxMusicEnabled) {
-        gameconfig->enablemusic = checkBoxMusicEnabled->getState();
-        
-        if ( checkBoxMusicEnabled->getState() ) {
+        if ( checkBoxMusicEnabled->getState() )
             sound->playMusic("sound/music/");
-            checkBoxMusicEnabled->setLabel("Enabled");
-        } else {
-            sound->stopMusic();
-            checkBoxMusicEnabled->setLabel("Disabled");
-        }
+    } else {
+        sound = new DummySound();
+        checkBoxSoundEnabled->setLabel("Disabled");
     }
-    
+}
+
+void SoundView::onMusicCheckBoxModified()
+{
+    gameconfig->enablemusic = checkBoxMusicEnabled->getState();
+        
+    if ( checkBoxMusicEnabled->getState() ) {
+        sound->playMusic("sound/music/");
+        checkBoxMusicEnabled->setLabel("Enabled");
+    } else {
+        sound->stopMusic();
+        checkBoxMusicEnabled->setLabel("Disabled");
+    }
 }

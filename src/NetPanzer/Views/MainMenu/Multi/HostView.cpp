@@ -119,7 +119,7 @@ void HostView::doDraw(Surface &viewArea, Surface &clientArea)
     	sprintf(strBuf, "%3d", gameconfig->GetNumberPlayers());
     	clientArea.bltString(x + 125, y, strBuf, Color::white);
     */
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 
 } // end HostView::doDraw
 

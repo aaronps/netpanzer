@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Views/Components/Desktop.hpp"
 #include "Views/GameViewGlobals.hpp"
 
-cInputFieldString IPAddressView::szServer;
+//cInputFieldString IPAddressView::szServer;
 
 // IPAddressView
 //---------------------------------------------------------------------------
@@ -47,8 +47,8 @@ IPAddressView::IPAddressView() : View()
 
 void IPAddressView::Init()
 {
-    szServer.init("", 256,29);
-    addInputField(iXY(8, 8), &szServer, "", true);
+//    szServer.init("", 256,29);
+//    addInputField(iXY(8, 8), &szServer, "", true);
 } // end IPAddressView::init
 
 // doDraw
@@ -56,6 +56,6 @@ void IPAddressView::Init()
 void IPAddressView::doDraw(Surface &viewArea, Surface &clientArea)
 {
     clientArea.fill(Color::black);
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 } // end IPAddressView::doDraw
 

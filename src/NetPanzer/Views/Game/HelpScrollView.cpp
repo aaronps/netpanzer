@@ -113,7 +113,7 @@ HelpScrollView::HelpScrollView() : SpecialButtonView()
     iXY size(20, 20);
     iXY pos(getClientRect().getSizeX() - size.x, 0);
 
-    upButton = new Button("upButton");
+    upButton = new Button();
     upButton->setLabel("+");
     upButton->setLocation(pos.x, pos.y);
     upButton->setSize(size.x, size.y);
@@ -121,7 +121,7 @@ HelpScrollView::HelpScrollView() : SpecialButtonView()
     add(upButton);
 
     pos = iXY(getClientRect().getSizeX() - size.x, getClientRect().getSizeY() - size.y);
-    downButton = new Button("downButton");
+    downButton = new Button();
     downButton->setLabel("-");
     downButton->setLocation(pos.x, pos.y);
     downButton->setSize(size.x, size.y);
@@ -145,11 +145,7 @@ void HelpScrollView::doDraw(Surface &viewArea, Surface &clientArea)
                             "Note: Use the right mouse button to accomplish fast mouse clicking.",
                             Color::white);
 
-    //char strBuf[256];
-    //sprintf(strBuf, "%d", scrollBar->getValue());
-    //clientArea.bltStringCenter(strBuf, Color::red);
-
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 } // end HelpScrollView::doDraw
 
 // drawHelpText
@@ -158,23 +154,13 @@ void HelpScrollView::drawHelpText(Surface &dest, const int &, const int &)
 {
     PIX color   = Color::white;
 
-    //if (scrollBar != 0)
-    //{
-    //	int minView = scrollBar->getValue();
-    //	int maxView = minView + scrollBar->getViewableAmount();
-    //
-    //	if(maxView > scrollBar->getMaximum())
-    //	{
-    //		maxView = scrollBar->getMaximum();
-    //	}
-    //
     int curIndex = 0;
-    for (int i = topViewableItem; i < topViewableItem + maxViewableItems; i++) {
+    for (int i = topViewableItem; i < topViewableItem + maxViewableItems; i++)
+    {
         dest.bltString(1, 6 + curIndex * (TEXT_GAP_SPACE +
                     Surface::getFontHeight()), text[i].c_str(), color);
         curIndex++;
     }
-    //}
 
 } // end HelpScrollView::drawHelpText
 

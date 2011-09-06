@@ -57,7 +57,7 @@ static void bYES()
 
     // Must remove the gameView first so that the initButtons detects that
     // and loads the correct buttons.
-    Desktop::setVisibilityAllWindows(false);
+    Desktop::hideAllWindows();
     Desktop::setVisibility("MainView", true);
 
     View *v = Desktop::getView("OptionsView");
@@ -122,8 +122,6 @@ AreYouSureResignView::AreYouSureResignView() : SpecialButtonView()
 //---------------------------------------------------------------------------
 void AreYouSureResignView::init()
 {
-    removeAllButtons();
-
     setBordered(false);
     setAllowResize(false);
     setDisplayStatusBar(false);
@@ -155,7 +153,7 @@ void AreYouSureResignView::doDraw(Surface &viewArea, Surface &clientArea)
 
     viewArea.bltStringCenter("Are you sure you wish to Resign?", Color::white);
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 } // end AreYouSureResignView::doDraw
 
 // doActivate

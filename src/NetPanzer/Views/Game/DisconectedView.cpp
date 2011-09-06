@@ -57,7 +57,7 @@ DisconectedView::buttonOk()
 
     // Must remove the gameView first so that the initButtons detects that
     // and loads the correct buttons.
-    Desktop::setVisibilityAllWindows(false);
+    Desktop::hideAllWindows();
     Desktop::setVisibility("MainView", true);
 
     View *v = Desktop::getView("OptionsView");
@@ -114,8 +114,6 @@ DisconectedView::DisconectedView() : SpecialButtonView()
 void
 DisconectedView::init()
 {
-    removeAllButtons();
-
     setBordered(true);
     setAllowResize(false);
 
@@ -136,7 +134,7 @@ DisconectedView::doDraw(Surface &viewArea, Surface &clientArea)
     viewArea.bltLookup(r, Palette::darkGray256.getColorArray());
     viewArea.bltStringCenter(disconectMsg.c_str(), Color::white);
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 }
 
 void

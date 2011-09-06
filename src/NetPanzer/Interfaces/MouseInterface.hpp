@@ -31,11 +31,13 @@ class MouseEvent
 public:
     enum {
         EVENT_DOWN = SDL_MOUSEBUTTONDOWN,
-        EVENT_UP = SDL_MOUSEBUTTONUP
+        EVENT_UP = SDL_MOUSEBUTTONUP,
+        EVENT_MOVE = SDL_MOUSEMOTION
     };
     unsigned char button;
     unsigned char event;
     iXY pos;
+    iXY relpos;
 };
 
 typedef std::deque<MouseEvent> MouseEventQueue;
@@ -53,12 +55,20 @@ private:
     typedef std::map<std::string,Surface*> cursors_t;
     static cursors_t cursors;
 
+    static bool isGrabMode;
+
 protected:
     static iXY mouse_pos;
 
     static unsigned char button_mask;
 
 public:
+    static void setGrabMode(bool wantGrab)
+    {
+        isGrabMode = wantGrab;
+    }
+
+
     enum {
         left_button   = SDL_BUTTON_LEFT,
         middle_button = SDL_BUTTON_MIDDLE,
@@ -106,11 +116,7 @@ public:
     static void manageClickTimer();
 
     static void setCursor(const char* cursorname);
-    static inline void onMouseMoved(SDL_MouseMotionEvent *e)
-    {
-        mouse_pos.x = e->x;
-        mouse_pos.y = e->y;
-    }
+    static void onMouseMoved(SDL_MouseMotionEvent *e);
     
     static inline iXY getMousePosition()   { return mouse_pos; }
     

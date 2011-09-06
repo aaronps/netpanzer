@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Component.hpp"
 #include "MouseEvent.hpp"
 
-class StateChangedCallback;
+#include "Util/MinSignal.hpp"
 
 //--------------------------------------------------------------------------
 class Choice : public Component
@@ -36,18 +36,20 @@ private:
     bool                isOpen;
     size_t              mouseover;
     int                 adjustedY;  // The y translation value to keep the choice on the screen.
-    StateChangedCallback* callback;
+
+    std::string         label;
 
     enum { ChoiceItemHeight = 14 };
 
 public:
-    Choice(StateChangedCallback* newcallback = 0)
-            : callback(newcallback)
+    Choice()
     {
         reset();
     }
     virtual ~Choice()
     {}
+
+    MinSignal stateChanged;
 
     void   add(const std::string& item);
     void   addItem(const std::string& item);
@@ -63,16 +65,9 @@ public:
     void   select(const std::string& item);
     void   select(size_t index);
     void   setMinWidth(int minWidth);
-
-    void setStateChangedCallback(StateChangedCallback* newcallback)
-    {
-        callback = newcallback;
-    }
+    void   setLabel(const std::string& label) { this->label = label; }
 
     virtual void draw(Surface &dest);
-    virtual void render()
-    {
-    }
     virtual void actionPerformed(const mMouseEvent &me);
 
 private:

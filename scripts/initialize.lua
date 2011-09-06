@@ -17,9 +17,9 @@ function dump_table(result, t, extra)
         return
     end    
     
-	for key,value in pairs(t) do
+    for key,value in pairs(t) do
         local keytext
-	    local valuetext
+        local valuetext
     
         if type(key) == 'number' then
             if extra then
@@ -33,11 +33,11 @@ function dump_table(result, t, extra)
             end
         end
         
-	    if type(value) == 'table' then
-	        if keytext then
-	            dump_table(result, value, (lin or "") .. keytext)
+        if type(value) == 'table' then
+            if keytext then
+                dump_table(result, value, (lin or "") .. keytext)
             end
-	    elseif type(value) == 'string' then
+        elseif type(value) == 'string' then
             valuetext = '"' .. string.gsub(value,'"','\\"') .. '"'
         elseif type(value) ~= 'function' then
             valuetext = tostring(value)
@@ -46,7 +46,7 @@ function dump_table(result, t, extra)
         if keytext and valuetext then
             table.insert(result, lin .. keytext .. " = " .. valuetext)
         end
-	end
+    end
 end
 
 gconcat = table.concat;

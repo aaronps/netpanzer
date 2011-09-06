@@ -19,14 +19,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef __View_hpp__
 #define __View_hpp__
 
-#include "cButton.hpp"
 #include "2D/Surface.hpp"
 #include "2D/PackedSurface.hpp"
-#include "cInputField.hpp"
 #include "Types/iRect.hpp"
 #include "Types/iXY.hpp"
 #include "Component.hpp"
 #include "MouseEvent.hpp"
+#include "Core/CoreTypes.hpp"
 
 #include <list>
 
@@ -43,7 +42,8 @@ class View : public iRect
     friend class Desktop;
 public:
     void add(Component *Component);
-    void add(DEFAULT_VIEW_BUTTON button);
+
+    bool isVisible() const { return status & STATUS_VISIBLE; }
 
 public:
     typedef list<Component *> ComponentList;
@@ -53,56 +53,22 @@ public:
     
     Component *focusComponent;
 
-    std::vector<cButton*>     buttons;
-    std::vector<cInputField*> inputFields;
-
-    enum
-    {
-        MAX_WINDOW_CLIENT_XSIZE = 632
-    };
-    enum
-    {
-        MAX_WINDOW_CLIENT_YSIZE = 458
-    };
-
-    int getPressedButton()
-    {
-        return pressedButton;
-    }
-    int getPrevPressedButton()
-    {
-        return prevPressedButton;
-    }
-    int getHighlightedButton()
-    {
-        return highlightedButton;
-    }
-    int getPrevHighlightedButton()
-    {
-        return prevHighlightedButton;
-    }
+    void setBackgroundColor( ColorType c ) { backgroundColor = c; }
 
 protected:
+    ColorType        backgroundColor;
+
     virtual void     actionPerformed(mMouseEvent )
     {}
     Surface*         getViewArea(Surface& dest);
     virtual Surface* getClientArea(Surface& dest);
 
-    int              pressedButton;
-    int              prevPressedButton;
-    int              highlightedButton;
-    int              prevHighlightedButton;
-
-    int              selectedInputField;
     char            *searchName;
     char            *title;
     char            *subTitle;
     int              status;
 
     char            *statusText;
-
-    enum { RESIZE_XMINSIZE = 15 };
-    enum { RESIZE_YMINSIZE = 15 };
 
     // Status items
     enum { STATUS_ACTIVE             = (1U << 0) };
@@ -113,21 +79,6 @@ protected:
     enum { STATUS_BORDERED           = (1U << 5) };
     enum { STATUS_DISPLAY_STATUS_BAR = (1U << 6) };
     enum { STATUS_SCROLL_BAR         = (1U << 7) };
-
-    // Mouse actions
-    enum { MA_RESIZE_TOP    = (1U <<  0) };
-    enum { MA_RESIZE_LEFT   = (1U <<  1) };
-    enum { MA_RESIZE_BOTTOM = (1U <<  2) };
-    enum { MA_RESIZE_RIGHT  = (1U <<  3) };
-    enum { MA_MOVE          = (1U <<  4) };
-    enum { MA_CLOSE         = (1U <<  5) };
-    enum { MA_MINIMIZE      = (1U <<  6) };
-    enum { MA_MAXIMIZE      = (1U <<  7) };
-    enum { MA_RESTORE       = (1U <<  8) };
-    enum { MA_IMAGE_TILES   = (1U <<  9) };
-    enum { MA_SCROLL_BAR    = (1U << 10) };
-    enum { MA_MOUSE_ENTER   = (1U << 11) };
-    enum { MA_MOUSE_EXIT    = (1U << 12) };
 
     void        reset     ();
     void        activate  ();
@@ -144,28 +95,16 @@ protected:
     void setActive          (const bool &newStatus);
     //void setScrollBar       (const bool &newStatus);
 
-    // Scroll bar functions.
+    // cButton Functions. XXX remove them
+    void addButtonPackedSurface(const iXY &pos, PackedSurface &source, const char *toolTip, ITEM_FUNC leftClickFunc){};
+    void addButtonCenterText(const iXY &pos, const int &xSize, const char *nName, const char *nToolTip, ITEM_FUNC nLeftClickFunc){};
 
-    // cButton Functions.
-    void addButtonPackedSurface(const iXY &pos, PackedSurface &source, const char *toolTip, ITEM_FUNC leftClickFunc);
-    void addButtonCenterText(const iXY &pos, const int &xSize, const char *nName, const char *nToolTip, ITEM_FUNC nLeftClickFunc);
-    /*!FIXME!*/ void drawDefinedButtons   (Surface &clientArea);
-    void drawHighlightedButton(Surface &clientArea);
-    void drawPressedButton(Surface &clientArea);
-    void setPressedButton(const int &cButton);
-    void setHighlightedButton(const int &cButton);
-    int  findButtonContaining(const iXY &pos);
 
     // SearchName, Title, and SubTitle functions.
     void  setSearchName(const char *searchName);
     void  setTitle(const char *title);
     void  setSubTitle(const char *subTitle);
     void  drawTitle(Surface &windowArea);
-
-    // Input Field Functions
-    cInputField* addInputField(const iXY &pos, cInputFieldString *string, const char *excludedCharacters, const bool &isSelected);
-    int  findInputFieldContaining(const iXY &pos);
-    void drawInputFields(Surface &clientArea);
 
     /////////////////////////////////
     void draw(Surface& drawon);
@@ -179,13 +118,12 @@ protected:
     /////////////////////////////////
 
     // These options can be modified on a per View type basis
-    virtual void drawBorder(Surface &windowArea);
-    virtual void doDraw(Surface &windowArea, Surface &clientArea);
+    void drawBorder(Surface &windowArea);
     virtual void doActivate();
     virtual void doDeactivate();
     virtual void mouseMove(const iXY &prevPos, const iXY &newPos);
     virtual void lMouseDown(const iXY &pos);
-    virtual int  lMouseUp(const iXY &downPos, const iXY &upPos);
+    virtual void lMouseUp(const iXY &downPos, const iXY &upPos);
     virtual void lMouseDrag(const iXY &downPos, const iXY &prevPos, const iXY &newPos);
     virtual void lMouseDouble(const iXY &pos);
     virtual void rMouseDown(const iXY &pos);
@@ -197,7 +135,6 @@ protected:
     virtual void mouseEnter(const iXY &pos);
     virtual void mouseExit(const iXY &pos);
     //virtual void keyUp();
-    void scrollBarMove(const iXY &prevpos, const iXY &newpos);
 
     void resize(const iXY &size);
     inline void resize(const int &x, const int &y)
@@ -239,10 +176,7 @@ public:
     {
         moveTo(iXY(x, y));
     }
-    void removeAllButtons()
-    {
-        buttons.clear(); // XXX LEAK
-    }
+
     void removeComponents()
     {
         ComponentsIterator i = components.begin();
@@ -302,8 +236,6 @@ public:
     {
         return status & STATUS_SCROLL_BAR;
     }
-
-    virtual int getMouseActions(const iXY &p) const;
 
     iRect getClientRect() const;
 };

@@ -43,25 +43,24 @@ char MenuTemplateView::currentView[]      = "";
 
 static void bMain()
 {
-    Desktop::setVisibilityAllWindows(false);
+    Desktop::hideAllWindows();
     Desktop::setVisibility("MainView", true);
 }
 
 static void bMulti()
 {
     if (strcmp(MenuTemplateView::currentMultiView, "GetSessionView") == 0) {
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
         Desktop::setVisibility("GetSessionView", true);
     } else if (strcmp(MenuTemplateView::currentMultiView, "HostView") == 0) {
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
         Desktop::setVisibility("HostView", true);
-        Desktop::setVisibility("UnitSelectionView", true);
         Desktop::setVisibility("FlagSelectionView", true);
         Desktop::setVisibility("HostOptionsView", true);
         Desktop::setVisibility("MapSelectionView", true);
         Desktop::setVisibility("PlayerNameView", true);
     } else if (strcmp(MenuTemplateView::currentMultiView, "JoinView") == 0) {
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
         Desktop::setVisibility("JoinView", true);
         Desktop::setVisibility("FlagSelectionView", true);
         Desktop::setVisibility("PlayerNameView", true);
@@ -74,13 +73,13 @@ static void bMulti()
 
 static void bOptions()
 {
-    Desktop::setVisibilityAllWindows(false);
+    Desktop::hideAllWindows();
     Desktop::setVisibility("OptionsView", true);
 }
 
 static void bHelp()
 {
-    Desktop::setVisibilityAllWindows(false);
+    Desktop::hideAllWindows();
     Desktop::setVisibility("HelpView", true);
 }
 
@@ -229,7 +228,7 @@ void MenuTemplateView::doDraw(Surface &viewArea, Surface &clientArea)
         titlePackedSurface.bltBlend(clientArea, bodyTextRect.min.x, 390, Palette::colorTable6040);
     }
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 } // end doDraw
 
 // doActivate

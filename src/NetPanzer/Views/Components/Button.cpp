@@ -22,39 +22,37 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "MouseEvent.hpp"
 
-
-// render
 void
-Button::render()
+Button::draw(Surface &dest)
 {
-    if ( bimage.getNumFrames() == 1 ) {
-        bimage.blt(surface, extraBorder, extraBorder);
+    iRect r;
+    getBounds(r);
+
+    if ( bimage.getFrameCount() == 1 ) {
+        bimage.blt(dest, position.x + extraBorder, position.y + extraBorder);
     }
-    else if ( bimage.getNumFrames() == 3 )
+    else if ( bimage.getFrameCount() == 3 )
     {
         bimage.setFrame(bstate);
-        bimage.blt(surface, extraBorder, extraBorder);
+        bimage.blt(dest, position.x + extraBorder, position.y + extraBorder);
     }
     else
     {
-        surface.fill(componentBodyColor);        
+        dest.fillRect(r, componentBodyColor);
     }
 
     if ( borders[bstate][0]|extraBorder ) // only 1 | (binary or)
     {
-        surface.drawButtonBorder(borders[bstate][0], borders[bstate][1]);
+        dest.drawButtonBorder(r, borders[bstate][0], borders[bstate][1]);
     }
     
     if ( label.length() )
     {
-        Surface text;
-        text.renderText( label.c_str(), textColor, 0);
-        // blit centered and transparent
-        text.bltTrans(surface, (surface.getWidth()/2) - (text.getWidth()/2),
-                      (surface.getHeight()/2) - (text.getHeight()/2));        
+        // XXX 4 is half the height of text
+        dest.bltString( position.x + (r.getSizeX()/2) - (Surface::getTextLength(label.c_str())/2),
+                        position.y + (r.getSizeY()/2) - 4,
+                        label.c_str(), textColor);
     }
-    
-    dirty = false;
 }
 
 // actionPerformed
@@ -64,15 +62,13 @@ void Button::actionPerformed(const mMouseEvent &me)
     if (me.getID() == mMouseEvent::MOUSE_EVENT_ENTERED
                 || me.getID() == mMouseEvent::MOUSE_EVENT_RELEASED) {
         bstate = BOVER;
-        textColor = Color::red;
-        dirty = true; // draw text in red
+        textColor = Color::yellow;
     } else if (me.getID() == mMouseEvent::MOUSE_EVENT_EXITED) {
         bstate = BNORMAL;
         textColor = Color::white;
-        dirty = true; // draw defaults;
     } else if (me.getID() == mMouseEvent::MOUSE_EVENT_PRESSED) {
         bstate = BPRESSED;
-        textColor = Color::yellow;
-        dirty = true;
+        textColor = Color::red;
+        clicked();
     }
 } // end Button::actionPerformed

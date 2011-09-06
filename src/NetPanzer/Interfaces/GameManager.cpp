@@ -68,14 +68,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Views/MainMenu/MainMenuView.hpp"
 #include "Views/MainMenu/OptionsTemplateView.hpp"
 #include "Views/MainMenu/OrderingView.hpp"
-#include "Views/MainMenu/SkirmishView.hpp"
 #include "Views/MainMenu/HelpView.hpp"
-#include "Views/MainMenu/Multi/JoinView.hpp"
 #include "Views/MainMenu/Multi/HostView.hpp"
 #include "Views/MainMenu/Multi/GetSessionView.hpp"
-#include "Views/MainMenu/Multi/UnitSelectionView.hpp"
 #include "Views/MainMenu/Multi/FlagSelectionView.hpp"
-#include "Views/MainMenu/Multi/UnitColorView.hpp"
 #include "Views/MainMenu/Multi/HostOptionsView.hpp"
 #include "Views/MainMenu/Multi/MapSelectionView.hpp"
 #include "Views/MainMenu/Multi/PlayerNameView.hpp"
@@ -383,7 +379,7 @@ void GameManager::netMessageViewControl(const NetMessage* message)
         = (const SystemViewControl*) message;
 
     if ( view_control->action_flags & _view_control_flag_close_all ) {
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
         Desktop::setVisibility("GameView", true);
     }
 

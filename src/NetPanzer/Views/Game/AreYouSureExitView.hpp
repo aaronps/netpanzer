@@ -18,11 +18,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef __AreYouSureExitView_hpp__
 #define __AreYouSureExitView_hpp__
 
-#include "Views/MainMenu/SpecialButtonView.hpp"
+#include "Views/Components/View.hpp"
 #include "2D/Surface.hpp"
 
 //---------------------------------------------------------------------------
-class AreYouSureExitView : public SpecialButtonView
+class AreYouSureExitView : public View
 {
 private:
     void init();

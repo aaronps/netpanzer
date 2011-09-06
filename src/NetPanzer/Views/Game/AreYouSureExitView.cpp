@@ -40,7 +40,7 @@ static void bNO()
 
 // AreYouSureExitView
 //---------------------------------------------------------------------------
-AreYouSureExitView::AreYouSureExitView() : SpecialButtonView()
+AreYouSureExitView::AreYouSureExitView()
 {
     setSearchName("AreYouSureExitView");
     setTitle("Exit netPanzer");
@@ -52,8 +52,6 @@ AreYouSureExitView::AreYouSureExitView() : SpecialButtonView()
 //---------------------------------------------------------------------------
 void AreYouSureExitView::init()
 {
-    removeAllButtons();
-
     setBordered(false);
     setAllowResize(false);
     setDisplayStatusBar(false);
@@ -63,14 +61,14 @@ void AreYouSureExitView::init()
 
     int x = (getClientRect().getSize().x - (141 * 2 + 20)) / 2;
     int y = screen->getHeight()/2 + 30;
-    addSpecialButton(	iXY(x, y),
-                      "YES",
-                      bYES);
+//    addSpecialButton(	iXY(x, y),
+//                      "YES",
+//                      bYES);
 
     x += 141 + 10;
-    addSpecialButton(	iXY(x, y),
-                      "NO",
-                      bNO);
+//    addSpecialButton(	iXY(x, y),
+//                      "NO",
+//                      bNO);
 
 } // end AreYouSureExitView::init
 
@@ -85,7 +83,7 @@ void AreYouSureExitView::doDraw(Surface &viewArea, Surface &clientArea)
 
     viewArea.bltStringCenter("Are you sure you wish to exit netPanzer?", Color::white);
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 } // end AreYouSureExitView::doDraw
 
 // doActivate

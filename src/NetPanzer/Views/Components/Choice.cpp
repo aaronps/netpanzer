@@ -20,7 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <algorithm>
 #include "Views/Components/Choice.hpp"
 #include "Views/Components/View.hpp"
-#include "Views/Components/StateChangedCallback.hpp"
+
+#define BORDER_SIZE (12)
 
 //---------------------------------------------------------------------------
 void Choice::reset()
@@ -39,7 +40,7 @@ void Choice::addItem(const std::string& item)
 {
     choiceList.push_back(item);
 
-    int borderSpace = borderSize * 2;
+    int borderSpace = BORDER_SIZE * 2;
 
     size.x = std::max((Surface::getTextLength(item) + borderSpace), size.y);
     size.y = ChoiceItemHeight;
@@ -54,8 +55,7 @@ void Choice::select(const std::string& item)
                 return;
 
             mouseover = index = i;
-            if(callback)
-                callback->stateChanged(this);
+            stateChanged();
 
             return;
         }
@@ -71,8 +71,7 @@ void Choice::select(size_t index)
         return;
 
     Choice::index = mouseover = index;
-    if(callback)
-        callback->stateChanged(this);
+    stateChanged();
 }
 
 //---------------------------------------------------------------------------
@@ -139,8 +138,7 @@ void Choice::actionPerformed(const mMouseEvent &me)
             return;
 
         index = mouseover;
-        if(callback)
-            callback->stateChanged(this);
+        stateChanged();
 
         // Since an item was selected, find which item was selected.
     } else if (	me.getID() == mMouseEvent::MOUSE_EVENT_EXITED) {
@@ -177,7 +175,7 @@ void Choice::draw(Surface &dest)
 
     // Draw the name of the choice.
     dest.bltStringShadowed( position.x, pos.y + adjustedY,
-                            componentName.c_str(), Color::white, Color::black);
+                            label.c_str(), Color::white, Color::black);
 
     getBounds(r);
 
@@ -219,7 +217,7 @@ void Choice::add(const std::string& item)
 {
     choiceList.push_back(item);
 
-    int borderSpace = borderSize * 2;
+    int borderSpace = BORDER_SIZE * 2;
 
     size.x = std::max(Surface::getTextLength(item) + borderSpace, size.y);
     size.x = std::max(minWidth, size.x);

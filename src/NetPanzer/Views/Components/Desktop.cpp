@@ -24,30 +24,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Interfaces/MouseInterface.hpp"
 
 #include "Views/Components/Label.hpp"
+#include "Views/Components/Component.hpp"
 
 using std::min;
 using std::max;
 
-float     Desktop::totalMouseDownTime   = 0.0;
-float     Desktop::currentMouseDownTime = 0.0;
 std::vector<View*> Desktop::views;
-View     *Desktop::focus;
-int       Desktop::mouseActions;
+std::vector<View*> Desktop::all_views;
+View     *Desktop::focus = 0;
+Component *Desktop::keyboardFocusComponent = 0;
 iXY       Desktop::lMouseDownPos;
 iXY       Desktop::rMouseDownPos;
 iXY       Desktop::prevMousePos;
-iXY       Desktop::mouseActionOffset;
 int       Desktop::prevButton;
-int       Desktop::mouseIsDown;
 View     *Desktop::mouseView;
-View     *Desktop::prevMouseView;
 View     *Desktop::lMouseView;
 View     *Desktop::rMouseView;
-TimeStamp Desktop::lDoubleClickDeadline;
-TimeStamp Desktop::rDoubleClickDeadline;
-float     Desktop::doubleClickTime = 0.15f;
-int       Desktop::mouseMoveStatus = 0;
-
 
 /////////////////////////////////////////////////////////////////////////////
 // Class definitions.
@@ -60,13 +52,58 @@ int       Desktop::mouseMoveStatus = 0;
 Desktop::Desktop()
 {
     focus        = 0;
-    mouseActions = 0;
     prevButton   = 0;
-
-    // Set the double click deadlines to 1 minute ago, so we don't
-    // double click on the first press
-    lDoubleClickDeadline = rDoubleClickDeadline = now() - 60;
 } // end Desktop constructor
+
+// add
+//--------------------------------------------------------------------------
+// Purpose: Adds a new window to the end of the current window list.
+//--------------------------------------------------------------------------
+void Desktop::add(View *view)
+{
+    if ( view )
+    {
+        all_views.push_back(view);
+        if ( view->isVisible() )
+        {
+            views.push_back(view);
+        }
+    }
+} // end add
+
+// remove
+//--------------------------------------------------------------------------
+// Purpose: Removes a window from the list.
+//--------------------------------------------------------------------------
+void Desktop::remove(View *view)
+{
+    if ( view )
+    {
+        std::remove(views.begin(), views.end(), view);
+        std::remove(all_views.begin(), all_views.end(), view);
+    }
+} // end add
+
+// setVisibility
+//--------------------------------------------------------------------------
+// Purpose:
+//--------------------------------------------------------------------------
+void Desktop::setVisibility(View *view, int isVisible)
+{
+    if ( isVisible && ! view->isVisible() )
+    {
+        view->status |= View::STATUS_VISIBLE;
+        views.push_back(view);
+        view->doActivate();
+    }
+    else if ( ! isVisible && view->isVisible() )
+    {
+        view->status &= ~View::STATUS_VISIBLE;
+        std::remove(views.begin(), views.end(), view);
+        view->doDeactivate();
+    }
+} // end setVisibility
+
 
 // manage
 //--------------------------------------------------------------------------
@@ -79,21 +116,26 @@ void Desktop::manage(int mouseX, int mouseY, int curButton)
 
     MouseInterface::setCursor("default.bmp");
 
-    prevMouseView = mouseView;
+    View* prevMouseView = mouseView;
 
     mouseView = findViewContaining(mousePos);
 
     // Check for mouseEnter and mouseExit.
-    if (mouseView != prevMouseView) {
-        if (mouseView != 0) {
-            mouseView->mouseEnter(mouseView->getScreenToClientPos(mousePos));
-        }
-        if (prevMouseView != 0) {
+    if (mouseView != prevMouseView)
+    {
+        if (prevMouseView != 0)
+        {
             prevMouseView->mouseExit(prevMouseView->getScreenToClientPos(mousePos));
+        }
+
+        if (mouseView != 0)
+        {
+            mouseView->mouseEnter(mouseView->getScreenToClientPos(mousePos));
         }
     }
 
-    if (mouseView != 0) {
+    if (mouseView != 0)
+    {
         mouseView->mouseMove(mouseView->getScreenToClientPos(prevMousePos), mouseView->getScreenToClientPos(mousePos));
     }
 
@@ -103,120 +145,41 @@ void Desktop::manage(int mouseX, int mouseY, int curButton)
     //
     //////////////////////////////////////////////////////////////////////////
 
-    if (curButton & MouseInterface::left_button_mask) {
-        // The button is down.  See if it just got pressed, or if it was pressed
-        // before and is being dragged.
-        if (!(prevButton & MouseInterface::left_button_mask)) {
-            // The mouse button just got pressed. Remember the initial place
-            // where it got pressed.
+    if (curButton & MouseInterface::left_button_mask) // left button is pressed
+    {
+        if (!(prevButton & MouseInterface::left_button_mask)) // new press
+        {
+            keyboardFocusComponent = 0;
             lMouseDownPos = mousePos;
-
-            // Is this a double click? **FIX THE DOUBLE CLICK SENSITIVITY**
-            if (lMouseView != 0) {
-                // XXX what is this? ;-) commented out to avoid warning
-                //int shit = 123456789;
-
-            } else {
-                // Not a double click.  See what window we're over
-                lMouseView = mouseView;
-                if (lMouseView != 0) {
-                    lMouseView->lMouseDown(lMouseView->getScreenToClientPos(mousePos));
-                    if (focus != lMouseView) {
-                        activate(lMouseView);
-                    }
-                    // We are over a window.  Get the standard mouse actions for that
-                    // window at this mouse position.
-
-                    // mouseActionOffset is relative to the current window
-                    mouseActionOffset = mousePos - lMouseView->min;
-                    mouseActions      = lMouseView->getMouseActions(mouseActionOffset);
-                    if (mouseActions != 0) {
-                        // A standard mouse action is supposed to happen here.  Remember
-                        // what that action is, and record the offset of the mouse from
-                        // the window, so the distance we move the mouse is the distance
-                        // the window gets resized, etc. exactly.
-
-                        if (lMouseView->status & View::STATUS_ALLOW_RESIZE) {
-                            if (mouseActions & View::MA_RESIZE_LEFT) {
-                                mouseActionOffset.x = mousePos.x - lMouseView->min.x;
-                            } else if (mouseActions & View::MA_RESIZE_RIGHT) {
-                                mouseActionOffset.x = lMouseView->max.x - mousePos.x;
-                            }
-
-                            if (mouseActions & View::MA_RESIZE_TOP) {
-                                mouseActionOffset.y = mousePos.y - lMouseView->min.y;
-                            } else if (mouseActions & View::MA_RESIZE_BOTTOM) {
-                                mouseActionOffset.y = lMouseView->max.y - mousePos.y;
-                            }
-                        }
-
-                        doMouseActions(mousePos);
-
-                    } else {
-                        // No standard mouse actions.  Tell the window that the mouse
-                        // just got pressed.
-                    }
-                }
-            }
-        } else {
-            // The mouse was down before and is still down.  Are we performing
-            // and standard window actions?
-
-            if (lMouseView != 0 && mouseActions != 0) {
-                //throw Exception("Double click!");
-
-                // Yes - it's a double click.  Inform the window as such.
-                //lMouseView->lMouseDouble(lMouseView->getScreenToClientPos(mousePos));
-
-                // We're doing some standard mouse actions.  Do them.
-                doMouseActions(mousePos);
-            } else {
-                //currentMouseDownTime += TimerInterface::getTimeSlice();
-                //totalMouseDownTime   += TimerInterface::getTimeSlice();
-                //
-                //if (totalMouseDownTime > 2.0f && totalMouseDownTime < 0.5f)
-                //{
-                //	if (currentMouseDownTime > 0.4f)
-                //	{
-                //		currentMouseDownTime = 0.0f;
-                //		lMouseView->lMouseUp(lMouseView->getScreenToClientPos(lMouseDownPos), lMouseView->getScreenToClientPos(mousePos));
-                //		lMouseView->lMouseDown(lMouseView->getScreenToClientPos(mousePos));
-                //	}
-                //}
-                //else if (totalMouseDownTime >= 5.0f)
-                //{
-                //	if (currentMouseDownTime > 0.1f)
-                //	{
-                //		currentMouseDownTime = 0.0f;
-                //		lMouseView->lMouseUp(lMouseView->getScreenToClientPos(lMouseDownPos), lMouseView->getScreenToClientPos(mousePos));
-                //		lMouseView->lMouseDown(lMouseView->getScreenToClientPos(mousePos));
-                //	}
-                //}
-
-                // No standard mouse actions.  Tell the window where the mouse
-                // was originally clicked that the mouse is being dragged over
-                // it.
-                if (lMouseView != 0) {
-                    lMouseView->lMouseDrag(lMouseView->getScreenToClientPos(lMouseDownPos), lMouseView->getScreenToClientPos(prevMousePos), lMouseView->getScreenToClientPos(mousePos));
+            lMouseView = mouseView;
+            if (lMouseView != 0)
+            {
+                lMouseView->lMouseDown(lMouseView->getScreenToClientPos(mousePos));
+                if (focus != lMouseView)
+                {
+                    activate(lMouseView);
                 }
             }
         }
-    } else {
-        // The mouse button is up.
-        //See if it just got released, or if it was up before.
-        if (prevButton & MouseInterface::left_button_mask) {
-            // The mouse button just got released.  If it was on top of a window
-            // before, then tell the window that the button was released
-            if (lMouseView != 0) {
+        else // continued press
+        {
+            if (lMouseView != 0)
+            {
+                lMouseView->lMouseDrag(lMouseView->getScreenToClientPos(lMouseDownPos), lMouseView->getScreenToClientPos(prevMousePos), lMouseView->getScreenToClientPos(mousePos));
+            }
+        }
+    }
+    else // left button is not pressed
+    {
+        if (prevButton & MouseInterface::left_button_mask)
+        {
+            if (lMouseView != 0)
+            {
                 lMouseView->lMouseUp(lMouseView->getScreenToClientPos(lMouseDownPos), lMouseView->getScreenToClientPos(mousePos));
             }
-            // Set double click deadline
-            lDoubleClickDeadline = now() + doubleClickTime;
         }
 
-        //LOG(("Button released - clearing lMouseView and mouseActions"));
         lMouseView = 0;
-        mouseActions = 0;
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -225,51 +188,34 @@ void Desktop::manage(int mouseX, int mouseY, int curButton)
     //
     //////////////////////////////////////////////////////////////////////////
 
-    if (curButton & MouseInterface::right_button_mask) {
-        // The button is down.  See if it just got pressed, or if it was pressed
-        // before and is being dragged.
-        if (!(prevButton & MouseInterface::right_button_mask)) {
-            // The mouse button just got pressed. Remember the initial place
-            // where it got pressed.
+    if (curButton & MouseInterface::right_button_mask) // right button pressed
+    {
+        if (!(prevButton & MouseInterface::right_button_mask))
+        {
+            keyboardFocusComponent = 0;
             rMouseDownPos = mousePos;
-
-            // Is this a double click? **FIX THE DOUBLE CLICK SENSITIVITY**
-            if (rMouseView != 0 && now() <= rDoubleClickDeadline && 0) {
-                //throw Exception("Double click!");
-
-                // Yes - it's a double click.  Inform the window as such.
-                rMouseView->rMouseDouble(rMouseView->getScreenToClientPos(mousePos));
-            } else {
-                // Not a double click.  See what window we're over.
-                rMouseView = mouseView;
-                if (rMouseView != 0) {
-                    // No standard mouse actions.  Tell the window that the mouse
-                    // just got pressed.
-                    rMouseView->rMouseDown(rMouseView->getScreenToClientPos(mousePos));
-                }
+            rMouseView = mouseView;
+            if (rMouseView != 0)
+            {
+                rMouseView->rMouseDown(rMouseView->getScreenToClientPos(mousePos));
             }
-        } else {
-            // The mouse was down before and is still down.
-
-            // No standard mouse actions.  Tell the window where the mouse
-            // was originally clicked that the mouse is being dragged over
-            // it.
-            if (rMouseView != 0) {
+        }
+        else
+        {
+            if (rMouseView != 0)
+            {
                 rMouseView->rMouseDrag(rMouseView->getScreenToClientPos(rMouseDownPos), rMouseView->getScreenToClientPos(prevMousePos), rMouseView->getScreenToClientPos(mousePos));
             }
         }
-    } else {
-        // The mouse button is up.
-        //See if it just got released, or if it was up before.
-        if (prevButton & MouseInterface::right_button_mask) {
-            // The mouse button just got released.  If it was on top of a window
-            // before, then tell the window that the button was released
-            if (rMouseView != 0) {
+    }
+    else
+    {
+        if (prevButton & MouseInterface::right_button_mask)
+        {
+            if (rMouseView != 0)
+            {
                 rMouseView->rMouseUp(rMouseView->getScreenToClientPos(rMouseDownPos), rMouseView->getScreenToClientPos(mousePos));
             }
-
-            // Set double click deadline
-            rDoubleClickDeadline = now() + doubleClickTime;
         }
         rMouseView = 0;
     }
@@ -277,13 +223,13 @@ void Desktop::manage(int mouseX, int mouseY, int curButton)
     prevButton   = curButton;
     prevMousePos = mousePos;
 
-    //mouseView = findViewContaining(mousePos);
-    unsigned effActions = mouseActions;
-    if (mouseView != 0 && effActions == 0) {
-        effActions = mouseView->getMouseActions(mousePos-mouseView->min);
+    if ( keyboardFocusComponent )
+    {
+        keyboardFocusComponent->handleKeyboard();
+        KeyboardInterface::flushCharBuffer();
     }
-
-    if (focus != 0) {
+    else if (focus != 0)
+    {
         focus->processEvents();
         KeyboardInterface::flushCharBuffer();
     }
@@ -296,33 +242,13 @@ void Desktop::manage(int mouseX, int mouseY, int curButton)
 //--------------------------------------------------------------------------
 void Desktop::draw(Surface& surface)
 {
+    surface.fill(Color::black); // XXX remove this
     std::vector<View*>::reverse_iterator i;
     for(i = views.rbegin(); i != views.rend(); i++) {
         (*i)->draw(surface);
     }
 } // end draw
 
-// add
-//--------------------------------------------------------------------------
-// Purpose: Adds a new window to the end of the current window list.
-//--------------------------------------------------------------------------
-void Desktop::add(View *view, bool autoActivate)
-{
-    assert(view != 0);
-    views.push_back(view);
-    if (autoActivate)
-        activate(view);
-} // end add
-
-// remove
-//--------------------------------------------------------------------------
-// Purpose: Removes a window from the list.
-//--------------------------------------------------------------------------
-void Desktop::remove(View *view)
-{
-    if ( view )
-        std::remove(views.begin(), views.end(), view);
-} // end add
 
 
 // activate
@@ -475,114 +401,6 @@ void Desktop::setActiveView(View *v)
 
 }
 
-// doMouseActions
-//--------------------------------------------------------------------------
-// Purpose:
-//--------------------------------------------------------------------------
-void Desktop::doMouseActions(const iXY &mousePos)
-{
-    if (lMouseView == 0) return;
-
-    if (mouseActions & View::MA_MOVE) {
-        // Move the window
-        // XXX need to check for screen size
-        //lMouseView->moveTo(mousePos - mouseActionOffset);
-    } else if (mouseActions & View::MA_SCROLL_BAR) {
-        lMouseView->scrollBarMove(lMouseView->getScreenToClientPos(prevMousePos), lMouseView->getScreenToClientPos(mousePos));
-    } else if (lMouseView->getResize()) {
-        // Resize the window and move it if necessary
-        iXY resizeMin(lMouseView->min);
-        iXY resizeMax(lMouseView->max);
-
-        if (mouseActions & View::MA_RESIZE_LEFT) {
-            resizeMin.x = min(	mousePos.x - mouseActionOffset.x,
-                               lMouseView->max.x - View::RESIZE_XMINSIZE);
-        }
-        if (mouseActions & View::MA_RESIZE_TOP) {
-            resizeMin.y = min(	mousePos.y + mouseActionOffset.y,
-                               lMouseView->max.y - View::RESIZE_XMINSIZE);
-        }
-        if (mouseActions & View::MA_RESIZE_RIGHT) {
-            resizeMax.x = max(	mousePos.x + mouseActionOffset.x,
-                               lMouseView->min.x + View::RESIZE_XMINSIZE);
-        }
-        if (mouseActions & View::MA_RESIZE_BOTTOM) {
-            resizeMax.y = max(	mousePos.y + mouseActionOffset.y,
-                               lMouseView->min.y + View::RESIZE_YMINSIZE);
-        }
-
-        // XXX
-        /*
-        lMouseView->moveTo(resizeMin);
-        lMouseView->resize(resizeMax - resizeMin);
-        */
-    }
-
-} // end Desktop::doMouseActions
-
-// getViewCount
-//--------------------------------------------------------------------------
-// Purpose: Returns the number of windows in the window manager.
-//--------------------------------------------------------------------------
-int Desktop::getViewCount()
-{
-    return views.size();
-} // end getViewCount
-
-// getViewSearchName
-//--------------------------------------------------------------------------
-// Purpose: Returns the searchName of the specified window.
-//--------------------------------------------------------------------------
-const char *Desktop::getViewSearchName(int winNum)
-{
-    assert(winNum < getViewCount());
-
-    // Returnthe requested windows searchName.
-    return views[winNum]->searchName;
-} // end getViewSearchName
-
-// getViewStatus
-//--------------------------------------------------------------------------
-// Purpose: Returns the status of the specified window.
-//--------------------------------------------------------------------------
-int Desktop::getViewStatus(const char *searchName)
-{
-    std::vector<View*>::iterator i;
-    for(i = views.begin(); i != views.end(); i++) {
-        View* view = *i;
-
-        if (strcmp(view->searchName, searchName) == 0) {
-            return view->status;
-        }
-    }
-
-    return 0;
-} // end getViewStatus
-
-// setVisibility
-//--------------------------------------------------------------------------
-// Purpose:
-//--------------------------------------------------------------------------
-void Desktop::setVisibility(const char *searchName, int isVisible)
-{
-    std::vector<View*>::iterator i;
-    for(i = views.begin(); i != views.end(); i++) {
-        View* view = *i;
-
-        if (strcmp(view->searchName, searchName) == 0) {
-            if (isVisible) {
-                view->status |= View::STATUS_VISIBLE;
-                view->doActivate();
-                //activate(view);
-            } else {
-                view->status &= ~View::STATUS_VISIBLE;
-                view->doDeactivate();
-            }
-            break;
-        }
-    }
-} // end setVisibility
-
 // setVisibilityNoDoAnything
 //--------------------------------------------------------------------------
 // Purpose: Only changes whether a visibility of the view, no activate or
@@ -634,13 +452,17 @@ void DesktopView::doDraw(Surface &viewArea, Surface &clientArea)
     int yOffset = 10;
     char strBuf[256];
 
-    for (int i = 0; i < Desktop::getViewCount(); i++) {
-        clientArea.bltString(0, yOffset, Desktop::getViewSearchName(i), Color::white);
+    for (unsigned int i = 0; i < Desktop::views.size(); i++)
+    {
+        clientArea.bltString(0, yOffset, Desktop::views[i]->getSearchName(), Color::white);
 
-        if (Desktop::getViewStatus(Desktop::getViewSearchName(i)) & STATUS_VISIBLE) {
+        if ( Desktop::views[i]->isVisible() )
+        {
             sprintf(strBuf, "STATUS_VISIBLE");
 
-        } else {
+        }
+        else
+        {
             sprintf(strBuf, "INVISIBLE");
         }
 
@@ -649,7 +471,7 @@ void DesktopView::doDraw(Surface &viewArea, Surface &clientArea)
         yOffset += Surface::getFontHeight();
     }
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 
 } // end doDraw
 

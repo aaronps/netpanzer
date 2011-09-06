@@ -26,7 +26,7 @@ static void bAbort()
         return;
     }
     sound->stopTankIdle();
-    Desktop::setVisibilityAllWindows(false);
+    Desktop::hideAllWindows();
     Desktop::setVisibility("MainView", true);
 }
 
@@ -66,7 +66,7 @@ LoadingView::doDraw(Surface &viewArea, Surface &clientArea)
     backgroundSurface.blt(clientArea, 0, 0);
     surface.blt(clientArea, 179, 153);
     
-    View::doDraw(viewArea, clientArea);    
+//    View::doDraw(viewArea, clientArea);
 }
 
 void

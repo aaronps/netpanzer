@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "2D/PackedSurface.hpp"
 #include "Views/Components/Desktop.hpp"
 #include "Util/Exception.hpp"
+#include "Util/Log.hpp"
 #include "Classes/WorldInputCmdProcessor.hpp"
 
 // addSpecialButton

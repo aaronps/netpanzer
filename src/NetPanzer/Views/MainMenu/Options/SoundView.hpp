@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Views/Components/View.hpp"
 #include "Views/MainMenu/OptionsTemplateView.hpp"
 #include "Views/Components/CheckBox.hpp"
-#include "Views/Components/StateChangedCallback.hpp"
 
 /////////////////////////////////////////////////////////////////////////////
 // forward declarations
@@ -34,19 +33,21 @@ class Surface;
 /////////////////////////////////////////////////////////////////////////////
 
 //--------------------------------------------------------------------------
-class SoundView : public OptionsTemplateView, public StateChangedCallback
+class SoundView : public OptionsTemplateView
 {
 protected:
     virtual void loadTitleSurface();
     CheckBox * checkBoxSoundEnabled;
     CheckBox * checkBoxMusicEnabled;
 
+    void onSoundCheckBoxModified();
+    void onMusicCheckBoxModified();
+
 public:
     SoundView();
 
     virtual void doDraw(Surface &windowArea, Surface &clientArea);
     virtual void initButtons();
-    virtual void stateChanged(Component* source);
 }; // end SoundView
 
 #endif // end __SoundView_hpp__

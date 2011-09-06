@@ -41,6 +41,7 @@ MiniMap::MiniMap(int x, int y, int w, int h) : mousepos(0,0)
 {
     setLocation(x, y);
     setSize(w,h);
+    surface.create(w, h, 1);
     moving=false;
     mouseinside=false;
     

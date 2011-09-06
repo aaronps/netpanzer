@@ -282,7 +282,7 @@ void HostOptionsView::doDraw(Surface &viewArea, Surface &clientArea)
                     "Note: Use the right mouse button to accomplish fast mouse clicking.",
                     Color::white);
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 
 } // end HostOptionsView::doDraw
 
@@ -371,7 +371,7 @@ void HostOptionsView::addMeterButtons(const iXY &pos)
     const int minWidth = 150;
     int xChoiceOffset = 2;
 
-    choiceGameType.setName("Game Type");
+    choiceGameType.setLabel("Game Type");
     choiceGameType.addItem("Objective");
     choiceGameType.addItem("Frag Limit");
     choiceGameType.addItem("Time Limit");
@@ -381,7 +381,7 @@ void HostOptionsView::addMeterButtons(const iXY &pos)
     add(&choiceGameType);
     xChoiceOffset += minWidth + 123;
 
-    choiceCloudCoverage.setName("Cloud Coverage");
+    choiceCloudCoverage.setLabel("Cloud Coverage");
     choiceCloudCoverage.addItem("Clear");
     choiceCloudCoverage.addItem("Broken");
     choiceCloudCoverage.addItem("Partly Cloudy");
@@ -393,7 +393,7 @@ void HostOptionsView::addMeterButtons(const iXY &pos)
     add(&choiceCloudCoverage);
     xChoiceOffset += minWidth + 13;
 
-    choiceWindSpeed.setName("Wind Speed");
+    choiceWindSpeed.setLabel("Wind Speed");
     choiceWindSpeed.addItem("Calm");
     choiceWindSpeed.addItem("Breezy");
     choiceWindSpeed.addItem("Brisk");

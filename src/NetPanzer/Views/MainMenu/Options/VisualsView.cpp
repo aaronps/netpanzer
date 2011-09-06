@@ -58,7 +58,7 @@ void VisualsView::initButtons()
     
     char res_str[20];
     choiceResolution = new Choice();
-    choiceResolution->setName("Resolution");
+    choiceResolution->setLabel("Resolution");
     choiceResolution->addItem("current");
     SDL_Rect** modes = SDL_ListModes(0, SDL_FULLSCREEN);
     int cur_mode = 0;
@@ -76,7 +76,7 @@ void VisualsView::initButtons()
     choiceResolution->setLocation(x, y);
     choiceResolution->select(0);
     choiceResolution->setMinWidth(minWidth);
-    choiceResolution->setStateChangedCallback(this);
+    choiceResolution->stateChanged.connect(this, &VisualsView::onResolutionChoiceModified);
     add(choiceResolution);
     
     current_width = 0;
@@ -85,19 +85,19 @@ void VisualsView::initButtons()
     checkBoxFullscreen = new CheckBox();
     checkBoxFullscreen->setLabel("Fullscreen");
     checkBoxFullscreen->setLocation(x+ 200, y);
-    checkBoxFullscreen->setStateChangedCallback(this);
+    checkBoxFullscreen->stateChanged.connect(this, &VisualsView::onFullscreenCheckBoxModified);
     add(checkBoxFullscreen);
     y += yOffset;
     y += yOffset;
     
     choiceMiniMapUnitSize = new Choice();
-    choiceMiniMapUnitSize->setName("Mini Map Unit Size");
+    choiceMiniMapUnitSize->setLabel("Mini Map Unit Size");
     choiceMiniMapUnitSize->addItem("Small");
     choiceMiniMapUnitSize->addItem("Large");
     choiceMiniMapUnitSize->setLocation(x, y);
     choiceMiniMapUnitSize->select(gameconfig->radar_unitsize);
     choiceMiniMapUnitSize->setMinWidth(minWidth);
-    choiceMiniMapUnitSize->setStateChangedCallback(this);
+    choiceMiniMapUnitSize->stateChanged.connect(this, &VisualsView::onMiniMapUnitSizeChoiceModified);
     add(choiceMiniMapUnitSize);
     y += yOffset;
     y += yOffset;
@@ -111,7 +111,7 @@ void VisualsView::initButtons()
     checkBoxDrawAllShadows->setLabel("Draw All Shadows");
     checkBoxDrawAllShadows->setState(GameConfig::video_shadows);
     checkBoxDrawAllShadows->setLocation(x, y);
-    checkBoxDrawAllShadows->setStateChangedCallback(this);
+    checkBoxDrawAllShadows->stateChanged.connect(this, &VisualsView::onDrawAllShadowsCheckBoxModified);
     add(checkBoxDrawAllShadows);
     y += yOffset;
     
@@ -119,7 +119,7 @@ void VisualsView::initButtons()
     checkBoxBlendSmoke->setLabel("Blend Smoke");
     checkBoxBlendSmoke->setState(GameConfig::video_blendsmoke);
     checkBoxBlendSmoke->setLocation(x, y);
-    checkBoxBlendSmoke->setStateChangedCallback(this);
+    checkBoxBlendSmoke->stateChanged.connect(this, &VisualsView::onBlendSmokeCheckBoxModified);
     add(checkBoxBlendSmoke);
     y += yOffset;
 
@@ -128,18 +128,14 @@ void VisualsView::initButtons()
     checkBoxUseDirectX->setLabel("Use DirectX");
     checkBoxUseDirectX->setState(GameConfig::video_usedirectx);
     checkBoxUseDirectX->setLocation(x, y);
-    checkBoxUseDirectX->setStateChangedCallback(this);
+    checkBoxUseDirectX->stateChanged.connect(this, &VisualsView::onUseDirectXCheckBoxModified);
     add(checkBoxUseDirectX);
     y += yOffset;
 #endif
     
     //removeAllButtons();
     //removeComponents();
-    
 
-
-    
-    
     //add(&choiceGameViewBackgroundColor);
     //add(&choiceMiniMapObjectiveDrawMode);
     
@@ -164,7 +160,7 @@ void VisualsView::doDraw(Surface &viewArea, Surface &clientArea)
 
     MenuTemplateView::doDraw(viewArea, clientArea);
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 
 } // end VisualsView::doDraw
 
@@ -182,70 +178,70 @@ void VisualsView::loadTitleSurface()
     doLoadTitleSurface("visualsTitle");
 } // end VisualsView::loadTitleSurface
 
-// actionPerformed
-//---------------------------------------------------------------------------
-void VisualsView::stateChanged(Component* source)
+void VisualsView::onFullscreenCheckBoxModified()
 {
-    if ( source == checkBoxDrawAllShadows )
-    {
-        GameConfig::video_shadows = checkBoxDrawAllShadows->getState();
-    }
-    else if ( source == checkBoxBlendSmoke )
-    {
-        GameConfig::video_blendsmoke = checkBoxBlendSmoke->getState();
-    }
-    else if ( source == checkBoxFullscreen )
-    {
-        GameConfig::video_fullscreen = checkBoxFullscreen->getState();
-        GameManager::setVideoMode();
-    }
-    else if ( source == choiceResolution )
-    {
-        int sel_index = choiceResolution->getSelectedIndex()-1;
-        if ( sel_index < 0 )
-        {
-            return;
-        }
+    GameConfig::video_fullscreen = checkBoxFullscreen->getState();
+    GameManager::setVideoMode();
+}
 
-        SDL_Rect** modes = SDL_ListModes(0, SDL_FULLSCREEN);
-        SDL_Rect* mode = 0;
-        if ( modes && modes != (SDL_Rect**)-1 )
-        {
-            mode = modes[sel_index];
-        }
+void VisualsView::onDrawAllShadowsCheckBoxModified()
+{
+    GameConfig::video_shadows = checkBoxDrawAllShadows->getState();
+}
 
-        if ( mode )
-        {
-            GameConfig::video_width = mode->w;
-            GameConfig::video_height = mode->h;
-        }
+void VisualsView::onBlendSmokeCheckBoxModified()
+{
+    GameConfig::video_blendsmoke = checkBoxBlendSmoke->getState();
+}
 
-        if ( sel_index == 0 && ! GameConfig::video_fullscreen )
-        {
-            // on Mac crash if we are in window and we select the biggest
-            // resolution (the first one in theory), we make it smaller so it
-            // wont crash, it is a SDL error.
-            GameConfig::video_height -= 50;
-        }
-
-        GameManager::setVideoMode();
-    }
-    else if ( source == choiceMiniMapUnitSize )
-    {
-        if (choiceMiniMapUnitSize->getSelectedIndex() == 0)
-        {
-            gameconfig->radar_unitsize = _mini_map_unit_size_small;
-        }
-        else if (choiceMiniMapUnitSize->getSelectedIndex() == 1)
-        {
-            gameconfig->radar_unitsize = _mini_map_unit_size_large;
-        }
-    }
 #ifdef _WIN32
-    else if ( source == checkBoxUseDirectX )
-    {
-        GameConfig::video_usedirectx = checkBoxUseDirectX->getState();
-    }
+void VisualsView::onUseDirectXCheckBoxModified()
+{
+    GameConfig::video_usedirectx = checkBoxUseDirectX->getState();
+}
 #endif
+
+void VisualsView::onResolutionChoiceModified()
+{
+    int sel_index = choiceResolution->getSelectedIndex()-1;
+    if ( sel_index < 0 )
+    {
+        return;
+    }
+
+    SDL_Rect** modes = SDL_ListModes(0, SDL_FULLSCREEN);
+    SDL_Rect* mode = 0;
+    if ( modes && modes != (SDL_Rect**)-1 )
+    {
+        mode = modes[sel_index];
+    }
+
+    if ( mode )
+    {
+        GameConfig::video_width = mode->w;
+        GameConfig::video_height = mode->h;
+    }
+
+    if ( sel_index == 0 && ! GameConfig::video_fullscreen )
+    {
+        // on Mac crash if we are in window and we select the biggest
+        // resolution (the first one in theory), we make it smaller so it
+        // wont crash, it is a SDL error.
+        GameConfig::video_height -= 50;
+    }
+
+    GameManager::setVideoMode();
+}
+
+void VisualsView::onMiniMapUnitSizeChoiceModified()
+{
+    if (choiceMiniMapUnitSize->getSelectedIndex() == 0)
+    {
+        gameconfig->radar_unitsize = _mini_map_unit_size_small;
+    }
+    else if (choiceMiniMapUnitSize->getSelectedIndex() == 1)
+    {
+        gameconfig->radar_unitsize = _mini_map_unit_size_large;
+    }
 }
 

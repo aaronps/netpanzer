@@ -184,7 +184,7 @@ void CodeStatsView::doDraw(Surface &viewArea, Surface &clientArea)
 
     clientArea.bltString(2, INFO_AREA_Y_OFFSET - 18, strBuf, Color::white);
     */
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 
 } // end CodeStatsView::doDraw
 

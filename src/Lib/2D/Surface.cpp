@@ -1388,13 +1388,15 @@ void Surface::bltChar8x8(int x, int y, unsigned char character, const PIX &color
 //---------------------------------------------------------------------------
 void Surface::bltString(int x, int y, const char * str, const Uint8 &color)
 {
-    for (int index = 0; str[index] != 0; index++) {
-        // Don't attempt blank spaces.
-        if (str[index] == 32) {
-            continue;
+    unsigned int x_pos = x;
+    for (int index = 0; str[index] != 0 && x_pos < getWidth(); index++)
+    {
+        if (str[index] != 32)
+        {
+            bltChar8x8( x_pos, y, str[index], color);
         }
 
-        bltChar8x8(x + (index << 3), y, str[index], color);
+        x_pos += 8; //getFontHeight();
     }
 } // end Surface::bltString
 

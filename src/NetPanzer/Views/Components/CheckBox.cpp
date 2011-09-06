@@ -19,24 +19,47 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "Views/Components/CheckBox.hpp"
 #include "MouseEvent.hpp"
-#include "Views/Components/StateChangedCallback.hpp"
 
 void
-CheckBox::render()
+CheckBox::draw(Surface &dest)
 {
-    surface.fill(Color::black);
-    Surface text;
-    text.renderText( label.c_str(), textColor, 0);
-    surface.drawRect( iRect(0,0,12,12), Color::gray96);
-    surface.drawRect( iRect(1,1,13,13), Color::white);
-    surface.drawRect( iRect(1,1,12,12), Color::black);
+    iRect r;
+    getBounds(r);
+
+    iRect boxr(r);
+
+    boxr.max.x = boxr.min.x + 12;
+    boxr.max.y = boxr.min.y + 12;
+
+    dest.fillRect( boxr, Color::blue);
+    dest.drawRect( boxr, Color::gray96);
+
+    boxr.min.x += 1;
+    boxr.min.y += 1;
+
+    boxr.max.x += 1;
+    boxr.max.y += 1;
+
+    dest.drawRect(boxr, Color::white);
+
+    boxr.max.x -= 1;
+    boxr.max.y -= 1;
+
+    dest.drawRect(boxr, Color::black);
+
+    boxr.min.x += 3;
+    boxr.min.y += 3;
+
+    boxr.max.x -= 2;
+    boxr.max.y -= 2;
+
     if (state) {
-        surface.drawLine( 2, 2, 11, 11, Color::white);
-        surface.drawLine( 2, 11, 11, 2, Color::white);
+        dest.fillRect( boxr, Color::cobaltGreen);
     }
     
-    text.blt( surface, 14+2, (surface.getHeight()/2) - (text.getHeight()/2) );
-    dirty = false;
+    // 4 = font height / 2
+    // 3 = offset to center the label (14/2) - font height
+    dest.bltString(position.x + 14+2, position.y + 3, label.c_str(), textColor);
 }
 
 // actionPerformed
@@ -46,15 +69,11 @@ void CheckBox::actionPerformed(const mMouseEvent &me)
     if (	me.getID() == mMouseEvent::MOUSE_EVENT_CLICKED &&
             (me.getModifiers() & InputEvent::BUTTON1_MASK)) {
         state = !state;
-        if(callback)
-            callback->stateChanged(this);
-        dirty = true;
+        stateChanged();
     } else if (me.getID() == mMouseEvent::MOUSE_EVENT_ENTERED) {
         textColor = Color::yellow;
-        dirty = true; // draw text in red
     } else if (me.getID() == mMouseEvent::MOUSE_EVENT_EXITED) {
         textColor = Color::white;
-        dirty = true; // draw defaults;
     }
 
 

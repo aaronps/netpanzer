@@ -34,11 +34,6 @@ public:
     
     void draw(Surface &dest);
     
-    virtual void render()
-    {
-        // nothing
-    }
-    
     void actionPerformed(const mMouseEvent &me)
     {
         // nothing

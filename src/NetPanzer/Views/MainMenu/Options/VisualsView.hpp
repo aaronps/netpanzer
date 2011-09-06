@@ -23,7 +23,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Views/MainMenu/OptionsTemplateView.hpp"
 #include "Views/Components/CheckBox.hpp"
 #include "Views/Components/Choice.hpp"
-#include "Views/Components/StateChangedCallback.hpp"
 
 /////////////////////////////////////////////////////////////////////////////
 // forward declarations
@@ -36,28 +35,38 @@ class Surface;
 /////////////////////////////////////////////////////////////////////////////
 
 //--------------------------------------------------------------------------
-class VisualsView : public OptionsTemplateView, public StateChangedCallback
+class VisualsView : public OptionsTemplateView
 {
 private:
     int      selectedColorStartY;
 
     // Option check boxes.
+    CheckBox * checkBoxFullscreen;
     CheckBox * checkBoxDrawAllShadows;
     CheckBox * checkBoxBlendSmoke;
-    CheckBox * checkBoxFullscreen;
+
+    void onFullscreenCheckBoxModified();
+    void onDrawAllShadowsCheckBoxModified();
+    void onBlendSmokeCheckBoxModified();
+
 #ifdef _WIN32
     CheckBox * checkBoxUseDirectX;
+    void onUseDirectXCheckBoxModified();
 #endif
     //CheckBox drawUnitReload;
 
+
     // Option choices.
     Choice   * choiceResolution;
+    void onResolutionChoiceModified();
+
     unsigned int current_width;
     unsigned int current_height;
 
     Choice   * choiceGameViewBackgroundColor;
     Choice   * choiceMiniMapObjectiveDrawMode;
     Choice   * choiceMiniMapUnitSize;
+    void onMiniMapUnitSizeChoiceModified();
     Choice   * choiceUnitSelectionDrawMode;
 
     //Choice   choiceUnitInfoDrawLayer;
@@ -81,7 +90,6 @@ public:
     virtual void doDraw(Surface &windowArea, Surface &clientArea);
     virtual void processEvents();
     virtual void initButtons();
-    virtual void stateChanged(Component* source);
 }
 ; // end VisualsView
 

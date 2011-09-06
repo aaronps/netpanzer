@@ -40,5 +40,5 @@ void ParticleTweakView::doDraw(Surface &viewArea, Surface &clientArea)
 {
     viewArea.fill(Color::black);
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 } // end ParticleTweakView::doDraw

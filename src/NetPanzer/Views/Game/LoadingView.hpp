@@ -60,7 +60,7 @@ public:
     
     static void loadFinish()
     {
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
         GameManager::loadPalette("netp");
         GameManager::setNetPanzerGameOptions();
         Desktop::setVisibility("MiniMapView", true);
@@ -70,14 +70,14 @@ public:
     static void loadError()
     {
         GameManager::loadPalette("netpmenu");
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
         Desktop::setVisibility("MainView", true);
 
     }
     
     static void show()
     {
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
         Desktop::setVisibility("LoadingView", true);
     }
     

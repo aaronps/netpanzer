@@ -30,7 +30,7 @@ static void bInterface()
         Desktop::setVisibility("SoundView", false);
         Desktop::setVisibility("OptionsView", false);
     } else {
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
     }
 
     Desktop::setVisibility("InterfaceView", true);
@@ -45,7 +45,7 @@ static void bVisuals()
         Desktop::setVisibility("SoundView", false);
         Desktop::setVisibility("OptionsView", false);
     } else {
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
     }
 
     Desktop::setVisibility("VisualsView", true);
@@ -60,7 +60,7 @@ static void bSound()
         //Desktop::setVisibility("SoundView", false);
         Desktop::setVisibility("OptionsView", false);
     } else {
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
     }
     Desktop::setVisibility("SoundView", true);
     //Desktop::setVisibility("VisualsView", true);
@@ -84,7 +84,6 @@ OptionsTemplateView::OptionsTemplateView() : MenuTemplateView()
 //---------------------------------------------------------------------------
 void OptionsTemplateView::initButtons()
 {
-    removeAllButtons();
     removeComponents();
 
     MenuTemplateView::initButtons();

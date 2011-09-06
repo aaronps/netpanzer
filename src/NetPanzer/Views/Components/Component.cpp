@@ -21,21 +21,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ViewGlobals.hpp"
 #include "Views/Components/View.hpp"
 
-int Component::borderSize = 12;
-
 // reset
 //---------------------------------------------------------------------------
 void Component::reset()
 {
-    foreground = gForeground;
-    background = gBackground;
     size.zero();
     position.zero();
-    enabled    = true;
-    visible    = true;
     parent     = 0;
-    surface.free();
-
 } // end Component::reset
 
 // contains

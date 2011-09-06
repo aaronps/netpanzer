@@ -61,5 +61,5 @@ void MiniMapView::doDraw(Surface &viewArea, Surface &clientArea)
     // border
     viewArea.drawRect(iRect(0,0,viewArea.getWidth(), viewArea.getHeight()),Color::gray);
     
-    GameTemplateView::doDraw(viewArea, clientArea);
+//    GameTemplateView::doDraw(viewArea, clientArea);
 } // end doDraw

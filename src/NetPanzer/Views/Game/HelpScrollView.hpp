@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "Views/MainMenu/SpecialButtonView.hpp"
 #include "2D/Surface.hpp"
-#include "Views/Components/ScrollBar.hpp"
 #include "Views/Components/Button.hpp"
 
 //---------------------------------------------------------------------------
@@ -37,7 +36,6 @@ protected:
     int  maxYOffset;
     void drawHelpText(Surface &dest, const int &x, const int &y);
 
-    ScrollBar *scrollBar;
     std::vector<std::string> text;
 
     enum { TEXT_GAP_SPACE = 2 };
@@ -51,10 +49,7 @@ protected:
 
 public:
     HelpScrollView();
-    virtual ~HelpScrollView()
-    {
-        delete scrollBar;
-    }
+    virtual ~HelpScrollView() {}
 
     virtual void doDraw(Surface &windowArea, Surface &clientArea);
     virtual void actionPerformed(mMouseEvent me);

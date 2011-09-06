@@ -171,6 +171,8 @@ public:
     //void setTo(const PackedSurface &source, iRect bounds);
     void setTo(const PackedSurface &source);
 
+    void copyFrom(const PackedSurface &source);
+
 protected:
     void reset();
 

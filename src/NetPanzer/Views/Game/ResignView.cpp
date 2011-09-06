@@ -58,8 +58,6 @@ ResignView::ResignView() : View()
 //---------------------------------------------------------------------------
 void ResignView::init()
 {
-    removeAllButtons();
-
     setBordered(false);
     setAllowResize(false);
     setDisplayStatusBar(false);
@@ -90,7 +88,7 @@ void ResignView::doDraw(Surface &viewArea, Surface &clientArea)
     currentscreen->bltLookup(r, Palette::darkGray256.getColorArray());
     currentscreen->drawButtonBorder(r, Color::lightGreen, Color::darkGreen);
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 } // end ResignView::doDraw
 
 // doActivate

@@ -19,9 +19,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef __Button_hpp__
 #define __Button_hpp__
 
+#include <string>
+
 #include "Component.hpp"
 #include "2D/Color.hpp"
+#include "2D/PackedSurface.hpp"
 #include "ViewGlobals.hpp"
+#include "Util/MinSignal.hpp"
 
 typedef enum
 {
@@ -41,20 +45,19 @@ protected:
     PIX borders[3][2];
     PIX textColor;
     
-    Surface bimage;
+    PackedSurface bimage;
     
-    void render();
+    virtual void draw(Surface &dest);
     ButtonState bstate;
     
     void resetState()
     {
         bstate = BNORMAL;
         textColor = Color::white;
-        dirty = true;
     }
 
 public:
-    Button(const std::string &cname) : Component(cname)
+    Button() : Component()
     {
         position.zero();
         label.clear();
@@ -67,22 +70,39 @@ public:
     virtual ~Button()
     {}
 
+    MinSignal clicked;
+
     void setLabel(const std::string& l)
     {
         label = l;
-        dirty = true;
     }
     
     void setImage(const Surface &s)
     {
-        if ( s.getNumFrames() ) {
-            bimage.copy(s);
+        if ( s.getNumFrames() )
+        {
+            bimage.pack(s);
             setSize(bimage.getWidth(), bimage.getHeight());
-        } else {
+        }
+        else
+        {
             bimage.free();
         }
-        dirty = true;
     }
+
+    void loadPackedImage(const std::string& filename)
+    {
+        bimage.load(filename);
+        if ( bimage.getFrameCount() )
+        {
+            setSize(bimage.getWidth(), bimage.getHeight());
+        }
+        else
+        {
+            bimage.free();
+        }
+    }
+
     void clearImage()
     {
         bimage.free();
@@ -96,7 +116,6 @@ public:
         borders[1][1] = Color::red;
         borders[2][0] = Color::darkGray;
         borders[2][1] = Color::darkGray;
-        dirty = true;
     }
     
     void setNormalBorder()
@@ -107,13 +126,11 @@ public:
         borders[1][1] = bottomRightBorderColor;
         borders[2][0] = bottomRightBorderColor;
         borders[2][1] = topLeftBorderColor;
-        dirty=true;
     }
 
     void clearBorder()
     {
         memset(borders, 0, sizeof(borders));
-        dirty = true;
     }
     
     void setSize(int x, int y)

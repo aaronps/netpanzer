@@ -30,76 +30,64 @@ class Surface;
 class Desktop
 {
 private: // Variables
+    friend class DesktopView;
     enum { RESIZE_NONE,
            RESIZE_TOPLEFT,
            RESIZE_TOPRIGHT,
            RESIZE_BOTTOMLEFT,
            RESIZE_BOTTOMRIGHT };
 
-    static float      totalMouseDownTime;
-    static float      currentMouseDownTime;
     static std::vector<View*> views;
+    static std::vector<View*> all_views;
     static View      *focus;
-    static int        mouseActions;
+    static Component *keyboardFocusComponent;
     static iXY        lMouseDownPos;
     static iXY        rMouseDownPos;
     static iXY        prevMousePos;
     static int        prevButton;
-    static int        mouseIsDown;
     static View      *lMouseView;
     static View      *rMouseView;
     static View      *mouseView;
-    static View      *prevMouseView;
-    static TimeStamp  lDoubleClickDeadline;
-    static TimeStamp  rDoubleClickDeadline;
-    static float      doubleClickTime;
-    static int        mouseMoveStatus;
-
-    // Movement events. MOVE THIS OUT OF THIS CLASS!  INTO GAME_WIN.
-    enum { MM_LEFT  = (1U << 0) };
-    enum { MM_RIGHT = (1U << 1) };
-    enum { MM_UP    = (1U << 2) };
-    enum { MM_DOWN  = (1U << 3) };
-
-    // The following are used when the window is moved using move()
-    static iXY mouseActionOffset; // The displacement from the mouse press to th window
 
 private: // Functions
-    static void isMouseInBox(int mouseX, int mouseY, int x1, int y1, int x2, int y2);
-
-    static unsigned isMouseOverResizeArea(int mouseX, int mouseY);
-    static bool     isMouseOverMoveArea  (int mouseX, int mouseY);
-
-    static bool   isMouseInView(int mouseX, int mouseY);
     static View *findViewContaining(iXY p);
-    static void   doMouseActions(const iXY &mousePos);
 
 public:
     Desktop();
 
+    static void add(View *view);
+    static void remove(View *view);
+
+    static View *getView(const char *searchName)
+    {
+        std::vector<View*>::iterator i;
+
+        for( i = all_views.begin(); i != all_views.end(); i++ )
+        {
+            View* view = *i;
+            if ( strcmp(view->searchName, searchName) == 0 )
+            {
+                return view;
+            }
+        }
+
+        return 0;
+    }
+
+    static void setVisibility(View *view, int isVisible);
+    static void setVisibility(const char *viewName, int isVisible)
+    {
+        setVisibility( getView(viewName), isVisible );
+    }
+
+
     static void manage(int mouseX, int mouseY, int curButton);
     static void activate(View *view);
     static void toggleVisibility(const char *viewName);
-    static void setVisibility(const char *viewName, int isVisible);
     static void toggleVisibilityNoDoAnything(const char *viewName);
     static void setVisibilityNoDoAnything(const char *viewName, int isVisible);
-    static void add(View *view, bool autoActivate = true);
-    static void remove(View *view);
     static void draw(Surface& surface);
 
-    static iXY      getMouseActionOffset  ()
-    {
-        return mouseActionOffset;
-    }
-    static void     resetMouseActionOffset()
-    {
-        mouseActionOffset.zero();
-    }
-
-    static int         getViewCount();
-    static const char *getViewTitle(int viewNum);
-    static const char *getViewSearchName(int viewNum);
-    static int         getViewStatus(const char *searchName);
     static void        setActiveView(const char *viewitle);
     static void        setActiveView(View *view);
 
@@ -108,18 +96,16 @@ public:
         toggleVisibility(view->getSearchName());
     }
 
-    static void setVisibility(View *view, int isVisible)
+    static void hideAllWindows()
     {
-        setVisibility(view->getSearchName(), isVisible);
-    }
-
-    static void setVisibilityAllWindows(int isVisible)
-    {
-        int viewCount = getViewCount();
-
-        for (int i = 0; i < viewCount; i++) {
-            setVisibility(getViewSearchName(i), isVisible);
+        unsigned int i;
+        for ( i = 0; i < views.size(); i++ )
+        {
+            views[i]->status &= ~View::STATUS_VISIBLE;
+            views[i]->doDeactivate();
         }
+
+        views.clear();
     }
 
     static void toggleVisibilityNoDoAnything(View *view)
@@ -134,25 +120,8 @@ public:
 
     static bool getVisible(const char *searchName)
     {
-        if (getViewStatus(searchName) & View::STATUS_VISIBLE) {
-            return true;
-        }
-
-        return false;
-    }
-
-    static View *getView(const char *searchName)
-    {
-        std::vector<View*>::iterator i;
-        for(i = views.begin(); i != views.end(); i++) {
-            View* view = *i;
-
-            if (strcmp(view->searchName, searchName) == 0) {
-                return view;
-            }
-        }
-
-        return 0;
+        View *v = getView(searchName);
+        return v && v->isVisible();
     }
 
     static void checkViewPositions(iXY viewarea);
@@ -162,10 +131,19 @@ public:
     {
         return focus;
     }
+
     static void setFocusView(View *view)
     {
         activate(view);
     }
+
+    static void setKeyboardFocusComponent(Component *c)
+    {
+        keyboardFocusComponent = c;
+    }
+
+    static Component * getKeyboardFocusComponent() { return keyboardFocusComponent; }
+
 }
 ; // end Desktop
 

@@ -73,15 +73,8 @@ View::View(const iXY &pos, const iXY &size, const char *title)
 //---------------------------------------------------------------------------
 View::~View()
 {
-    std::vector<cButton*>::iterator i;
-    for(i = buttons.begin(); i != buttons.end(); i++) {
-        delete *i;
-    }
-    std::vector<cInputField*>::iterator f;
-    for(f = inputFields.begin(); f != inputFields.end(); f++) {
-        delete *f;
-    }
-    
+    removeComponents();
+
     free(title);
     free(subTitle);
     free(searchName);
@@ -96,11 +89,6 @@ void View::reset()
     min.zero();
     max.zero();
     status                =  0;
-    pressedButton         = -1;
-    prevPressedButton     = -1;
-    highlightedButton     = -1;
-    prevHighlightedButton = -1;
-    selectedInputField    = -1;
     searchName            = 0;
     title                 = 0;
     subTitle              = 0;
@@ -110,8 +98,6 @@ void View::reset()
     setSearchName("donut");
     setTitle("donut");
     setSubTitle("donut");
-
-    //scrollBar             = 0;
 
     removeComponents();
 
@@ -135,8 +121,6 @@ void View::reset()
 //---------------------------------------------------------------------------
 void View::drawBorder(Surface &viewArea)
 {
-    assert(this != 0);
-    
     viewArea.drawWindowsBorder();
 } // end drawBorder
 
@@ -348,11 +332,43 @@ void View::draw(Surface& surface)
         return;
 
     currentscreen = &surface; // hack
-    Surface* viewarea = getViewArea(surface);
-    Surface* clientarea = getClientArea(surface);
-    doDraw(*viewarea, *clientarea);
-    delete viewarea;
-    delete clientarea;
+    Surface* viewArea = getViewArea(surface);
+    Surface* clientArea = getClientArea(surface);
+
+    if ( backgroundColor != NoColor )
+    {
+        viewArea->fill( backgroundColor );
+    }
+
+    if (getShowStatus())
+    {
+        drawStatus(*clientArea);
+    }
+
+    // Draw all non-selected components.
+    ComponentsIterator i;
+    for ( i=components.begin(); i != components.end(); i++)
+    {
+        if (*i != focusComponent)
+        {
+            (*i)->draw(*clientArea);
+        }
+    }
+
+    // Now draw the selected component.
+    if (focusComponent != 0)
+    {
+        focusComponent->draw(*clientArea);
+    }
+
+    if (getBordered())
+    {
+        drawTitle(*viewArea);
+        drawBorder(*viewArea);
+    }
+
+    delete viewArea;
+    delete clientArea;
 } // end draw
 
 // activate
@@ -385,46 +401,7 @@ void View::deactivate()
     setActive(false);
 
     doDeactivate();
-
-    highlightedButton     = -1;
-    prevHighlightedButton = -1;
-    selectedInputField    = -1;
-
 } // end View::deactivate
-
-// doDraw
-//---------------------------------------------------------------------------
-// Purpose: Default implementation - draws all the componentList of the window.
-//---------------------------------------------------------------------------
-void View::doDraw(Surface &viewArea, Surface &clientArea)
-{
-    if (getShowStatus()) {
-        drawStatus(clientArea);
-    }
-
-    drawDefinedButtons(clientArea);
-    drawInputFields(clientArea);
-    drawHighlightedButton(clientArea);
-    drawPressedButton(clientArea);
-
-    // Draw all non-selected components.
-    ComponentsIterator i;
-    for ( i=components.begin(); i != components.end(); i++) {
-        if (*i != focusComponent) {
-            (*i)->draw(clientArea);
-        }
-    }
-
-    // Now draw the selected component.
-    if (focusComponent != 0) {
-        focusComponent->draw(clientArea);
-    }
-
-    if (getBordered()) {
-        drawTitle(viewArea);
-        drawBorder(viewArea);
-    }
-} // end View::doDraw
 
 // doActivate
 //---------------------------------------------------------------------------
@@ -466,72 +443,6 @@ void View::doDeactivate()
         actionPerformed(me);
     }
 } // end View::doDeactivate
-
-// getMouseActions
-//---------------------------------------------------------------------------
-// Purpose: Find the actions associated with the position of the mouse arrow
-//          cursor in the window.
-//---------------------------------------------------------------------------
-int View::getMouseActions(const iXY &pos) const
-{
-    assert(this != 0);
-
-    int actions = 0;
-
-    if (!getVisible() || !getActive()) {
-        return actions;
-    }
-
-    if (!getBordered()) {
-        return actions;
-    }
-
-    if (getResize()) {
-        // Now lets check for a window resize
-        iXY minOff;
-        iXY maxOff;
-
-        minOff.x = abs(pos.x); maxOff.x = abs(pos.x - getSizeX());
-        minOff.y = abs(pos.y); maxOff.y = abs(pos.y - getSizeY());
-
-        // Check the left,  then the right
-        if      (minOff.x < RESIZE_XMIN) actions |= MA_RESIZE_LEFT;
-        else if (maxOff.x < RESIZE_XMIN) actions |= MA_RESIZE_RIGHT;
-
-        // Check the top, then the bottom
-        if      (minOff.y < RESIZE_YMIN) actions |= MA_RESIZE_TOP;
-        else if (maxOff.y < RESIZE_YMIN) actions |= MA_RESIZE_BOTTOM;
-
-        // If a left or right was turned on, then give more area for selecting the
-        // resize area
-        if (actions & (MA_RESIZE_LEFT | MA_RESIZE_RIGHT)) {
-            if      (minOff.y < RESIZE_YMAX) actions |= MA_RESIZE_TOP;
-            else if (maxOff.y < RESIZE_YMAX) actions |= MA_RESIZE_BOTTOM;
-        }
-
-        if (actions & (MA_RESIZE_TOP | MA_RESIZE_BOTTOM)) {
-            if      (minOff.x < RESIZE_XMAX) actions |= MA_RESIZE_LEFT;
-            else if (maxOff.x < RESIZE_XMAX) actions |= MA_RESIZE_RIGHT;
-        }
-    }
-
-    // Check for moving the window via the move area.
-    if (getAllowMove()) {
-        //iRect titleBar(borderSize, borderSize, getSizeX()-borderSize, borderSize + moveAreaHeight);
-        iRect titleBar(borderSize, borderSize, getSizeX() - borderSize, borderSize + moveAreaHeight);
-        if (titleBar.contains(pos)) return actions |= MA_MOVE;
-    }
-
-    // Check for moving the window via the status bar.
-    //if (getAllowMove())
-    //{
-    //	//iRect titleBar(borderSize, borderSize, getSizeX()-borderSize, borderSize + moveAreaHeight);
-    //	iRect titleBar(borderSize, getSizeY() - borderSize - DEFAULT_STATUS_BAR_HEIGHT, getSizeX() - borderSize, getSizeY() - borderSize);
-    //	if (titleBar.contains(pos)) return actions |= MA_MOVE;
-    //}
-
-    return actions;
-} // end getMouseActions
 
 // getScreenToClientPos
 //---------------------------------------------------------------------------
@@ -623,9 +534,6 @@ iRect View::getClientRect() const
 //---------------------------------------------------------------------------
 void View::mouseMove(const iXY & prevPos, const iXY &newPos)
 {
-    prevHighlightedButton = highlightedButton;
-    highlightedButton     = findButtonContaining(newPos);
-
     // Check all components for a clicked event.
     ComponentsIterator i;
     for ( i=components.begin(); i != components.end(); i++)
@@ -673,15 +581,6 @@ void View::mouseMove(const iXY & prevPos, const iXY &newPos)
 //---------------------------------------------------------------------------
 void View::lMouseDown(const iXY &pos)
 {
-    if (pressedButton < 0) {
-        prevPressedButton = pressedButton;
-        pressedButton     = findButtonContaining(pos);
-    }
-
-    if (selectedInputField < 0) {
-        selectedInputField = findInputFieldContaining(pos);
-    }
-
     focusComponent = 0;
 
     // Check all components for a pressed event.
@@ -703,24 +602,8 @@ void View::lMouseDown(const iXY &pos)
 
 // lMouseUp
 //---------------------------------------------------------------------------
-int View::lMouseUp(const iXY &downPos, const iXY &upPos)
+void View::lMouseUp(const iXY &downPos, const iXY &upPos)
 {
-    Desktop::resetMouseActionOffset();
-
-    if (pressedButton == findButtonContaining(upPos)) {
-        if (pressedButton >= 0) {
-            //if (mouse.getCurButton() & 0)
-            if (buttons[pressedButton]->leftClickFunc != 0)
-                buttons[pressedButton]->leftClickFunc();
-            else
-            if (buttons[pressedButton]->rightClickFunc != 0)
-                buttons[pressedButton]->rightClickFunc();
-        }
-    }
-
-    prevPressedButton = pressedButton;
-    pressedButton     = -1;
-
     // Check all components for a clicked event.
     {    
         ComponentsIterator i;
@@ -733,7 +616,8 @@ int View::lMouseUp(const iXY &downPos, const iXY &upPos)
 
                 actionPerformed(me);
             }
-        }}
+        }
+    }
 
     // Report a mouse release to all components except for a clicked one.
     {    
@@ -747,12 +631,8 @@ int View::lMouseUp(const iXY &downPos, const iXY &upPos)
 
                 actionPerformed(me);
             }
-        }}
-
-    // I added this so I can tell if a button was pressed when
-    // the mouse button is let up.
-    return prevPressedButton;
-
+        }
+    }
 } // end View::lMouseUp
 
 // lMouseDrag
@@ -934,108 +814,6 @@ void View::mouseExit(const iXY &pos)
 
 } // end View::mouseExit
 
-// scrollBarMove
-//---------------------------------------------------------------------------
-// Purpose:
-//---------------------------------------------------------------------------
-void View::scrollBarMove(const iXY &prevPos, const iXY &newPos)
-{
-    (void) prevPos;
-    (void) newPos;
-    //if (scrollBar != 0)
-    //{
-    //	scrollBar->actionPerformed(newPos);
-    //}
-} // end scrollBarMove
-
-
-// drawDefinedButtons
-//---------------------------------------------------------------------------
-// Purpose:
-//---------------------------------------------------------------------------
-void View::drawDefinedButtons(Surface &clientArea)
-{
-    std::vector<cButton*>::iterator i;
-    for(i = buttons.begin(); i != buttons.end(); i++) {
-        cButton* button = *i;
-        button->topSurface.blt(clientArea, button->getBounds().min);
-    }
-} // end drawDefinedButtons
-
-// drawInputFields
-//---------------------------------------------------------------------------
-// Purpose:
-//---------------------------------------------------------------------------
-void View::drawInputFields(Surface &clientArea)
-{
-    for (size_t num = 0; num < inputFields.size(); num++) {
-        if (num == (size_t) selectedInputField) {
-            inputFields[num]->drawHighlighted(clientArea);
-        } else {
-            inputFields[num]->draw(clientArea);
-        }
-    }
-} // end drawInputFields
-
-// drawHighlightedButton
-//---------------------------------------------------------------------------
-// Purpose: Draws the correct image frame for the currently highlighted button.
-//---------------------------------------------------------------------------
-void View::drawHighlightedButton(Surface &clientArea)
-{
-    assert(this != 0);
-
-    if (highlightedButton < 0) {
-        return;
-    } else if (buttons[highlightedButton]->topSurface.getFrameCount() < 2) {
-        cButton* button = buttons[highlightedButton];
-        clientArea.drawRect(iRect(button->getBounds().min.x,
-                                  button->getBounds().min.y,
-                                  button->getBounds().max.x,
-                                  button->getBounds().max.y),
-                            Color::red);
-        return;
-    }
-
-    if (pressedButton == highlightedButton) {
-        return;
-    }
-
-    if (highlightedButton > (int) buttons.size()) {
-        throw Exception("ERROR: highlightedButton > butons.getCount()");
-    }
-
-    // Change to the highlight button frame.
-    buttons[highlightedButton]->topSurface.setFrame(1);
-    buttons[highlightedButton]->topSurface.blt(clientArea,
-            iXY(buttons[highlightedButton]->getBounds().min.x,
-                buttons[highlightedButton]->getBounds().min.y));
-    buttons[highlightedButton]->topSurface.setFrame(0);
-
-} // end drawHighlightedButton
-
-void View::addButtonPackedSurface(const iXY &pos, PackedSurface &source, const char *toolTip, ITEM_FUNC leftClickFunc)
-{
-    cButton* button = new cButton;
-    button->createPacked(pos, source, toolTip, leftClickFunc);
-    buttons.push_back(button);
-}
-
-// addButtonCenterText
-//---------------------------------------------------------------------------
-// Purpose: Adds a centered type button to the list of buttons.
-//---------------------------------------------------------------------------
-void View::addButtonCenterText(const iXY &pos,
-                               const int &xSize,
-                               const char *name,
-                               const char *toolTip,
-                               ITEM_FUNC leftClickFunc)
-{
-    cButton* button = new cButton;
-    button->createCenterText(pos, xSize, name, toolTip, leftClickFunc);
-    buttons.push_back(button);
-} // end addButtonCenterText
-
 // setSearchName
 //---------------------------------------------------------------------------
 // Purpose: Sets the title of the window.
@@ -1135,61 +913,6 @@ void View::drawStatus(Surface &dest)
     }
 } // end View::drawStatus
 
-// findButtonContaining
-//---------------------------------------------------------------------------
-// Purpose: Finds the button containing the position of the mouse.  The
-//          button are bounded relative to the window, so make sure to make
-//          the mouse position relative to the window before calling this.
-//---------------------------------------------------------------------------
-int View::findButtonContaining(const iXY &pos)
-{
-    assert(this != 0);
-
-    for (size_t num = 0; num < buttons.size(); num++) {
-        if (buttons[num]->contains(pos)) {
-            //LOG(("pressed button: %u", num));
-            return num;
-        }
-    }
-    return -1;
-} // end findButtonContaining
-
-// findInputFieldContaining
-//---------------------------------------------------------------------------
-// Purpose:
-//---------------------------------------------------------------------------
-int View::findInputFieldContaining(const iXY &pos)
-{
-    assert(this != 0);
-
-    for(size_t num = 0; num < inputFields.size(); num++) {
-        if (inputFields[num]->contains(pos)) {
-            return num;
-        }
-    }
-    return -1;
-} // end findInputFieldContaining
-
-// drawPressedButton
-//---------------------------------------------------------------------------
-// Purpose: Draws the selected button.
-//---------------------------------------------------------------------------
-void View::drawPressedButton(Surface &clientArea)
-{
-    assert(this != 0);
-
-    if (pressedButton < 0 || buttons[pressedButton]->topSurface.getFrameCount() < 2) return;
-    if (highlightedButton != pressedButton) return;
-    assert(pressedButton < (int) buttons.size());
-
-    // Chage to the highlight button frame.
-    buttons[pressedButton]->topSurface.setFrame(2);
-    buttons[pressedButton]->topSurface.blt(clientArea,
-            iXY(buttons[pressedButton]->getBounds().min.x,
-                buttons[pressedButton]->getBounds().min.y));
-    buttons[pressedButton]->topSurface.setFrame(0);
-} // drawPressedButton
-
 // checkResolution
 //---------------------------------------------------------------------------
 // Purpose: Check position after resolution change
@@ -1247,30 +970,6 @@ void View::resize(const iXY &size)
 
     max = min + destSize;
 } // end View::resize
-
-// setPressedButton
-//---------------------------------------------------------------------------
-void View::setPressedButton(const int &button)
-{
-    if (button >= (int) buttons.size()) {
-        throw Exception("ERROR: pressedButton >= numButtons");
-    }
-
-    prevPressedButton = pressedButton;
-    pressedButton     = button;
-} // end setPressedButton
-
-// setHighlightedButton
-//---------------------------------------------------------------------------
-void View::setHighlightedButton(const int &button)
-{
-    if (button >= (int) buttons.size()) {
-        throw Exception("ERROR: highlightedButton >= numButtons");
-    }
-
-    prevHighlightedButton = highlightedButton;
-    highlightedButton     = button;
-} // end setHighlightedButton
 
 // moveTo
 //---------------------------------------------------------------------------
@@ -1365,53 +1064,4 @@ void View::setActive(const bool &newStatus)
 //---------------------------------------------------------------------------
 void View::processEvents(void)
 {
-    if (selectedInputField >= 0) {
-        int shit;
-        while (KeyboardInterface::getChar(shit)) {
-            // Check for extended code.
-            if (shit == 0) {
-                if (KeyboardInterface::getChar(shit)) {
-                    inputFields[selectedInputField]->addExtendedChar(shit);
-                } else {
-                    throw Exception("ERROR: Expecting extended char code.");
-                }
-            } else {
-                inputFields[selectedInputField]->addChar(shit);
-            }
-        }
-    }
 } // end processEvents
-
-// addInputField
-//---------------------------------------------------------------------------
-cInputField* View::addInputField(
-    const iXY &pos,
-    cInputFieldString *string,
-    const char *excludedCharacters,
-    const bool &isSelected)
-{
-    cInputField* inputfield = new cInputField;
-
-    inputfield->setPos(pos);
-    inputfield->setInputFieldString(string);
-    inputfield->setExcludedCharacters(excludedCharacters);
-
-    inputFields.push_back(inputfield);
-
-    if (isSelected) {
-        selectedInputField = inputFields.size() - 1;
-    }
-
-    return inputfield;
-} // end addInputField
-
-//---------------------------------------------------------------------------
-void View::add(DEFAULT_VIEW_BUTTON button)
-{
-    if (button == CLOSE_VIEW_BUTTON) {}
-    else if (button == MINMAX_VIEW_BUTTON) {}
-    else {
-        assert(false);
-    }
-}
-

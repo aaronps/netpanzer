@@ -24,61 +24,32 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "2D/Surface.hpp"
 #include "Types/iXY.hpp"
 #include "Types/iRect.hpp"
-#include "Util/NoCopy.hpp"
-#include "Util/Log.hpp"
 
 class mMouseEvent;
 
 //--------------------------------------------------------------------------
-class Component : public NoCopy
+class Component
 {
 protected:
-    PIX    background;
-    PIX    foreground;
     iXY     size;
-    iXY    position;
-    Surface surface;
-    std::string componentName;
-    bool    enabled;
-    bool    visible;
-    bool    dirty;
-
-    static int borderSize;
+    iXY     position;
 
     void reset();
 
 public:
-    Component *next;
-    Component *prev;
-
     void *parent;       // Who is my daddy?
 
     void setParent(void *parent);
-
-    enum
-    {
-        BOTTOM_ALIGNMENT,
-        CENTER_ALIGNMENT,
-        LEFT_ALIGNMENT,
-        RIGHT_ALIGNMENT,
-        TOP_ALIGNMENT
-    };
 
     Component()
     {
         reset();
     }
-    
-    Component(const std::string &cname) : componentName(cname)
-    {
-        reset();
-    }
-    
+        
     virtual ~Component()
     {
     }
 
-    // Accessor functions.
     void getBounds(iRect &r)
     {
         r.min = position;
@@ -86,50 +57,31 @@ public:
     }
     bool contains(int x, int y) const;
     bool contains(iXY p) const { return contains(p.x, p.y); }
-//    Uint8 getBackground() const { return background; }
-//    Uint8 getForeground() const { return foreground; }
-//    const std::string& getName() const { return name; }
-//    const iXY &getSize() const { return size; }
-//    int getSizeX() const { return size.x; }
-//    int getSizeY() const { return size.y; }
-//    bool isEnabled() const { return enabled; }
-//    bool isVisible() const { return visible; }
 
     void setBounds(const iRect &r)
     {
         position  = r.min;
         size = r.getSize();
-        //surface.create(r.getSizeX(), r.getSizeY(), 1);
-        dirty = true;
     }
     
     virtual void setSize(int x, int y)
     {
         size.x=x;
         size.y=y;
-        surface.create(x,y,1);
-        dirty=true;
     }
 
-//    void setEnabled(bool _enabled) { enabled = _enabled; }
-//    void setForeground(PIX _foreground) { foreground = _foreground; }
     void setLocation(int x, int y);
     void setLocation(const iXY &p) { setLocation(p.x, p.y); }
-    void setName(const std::string& name) { Component::componentName = name; }
 
-    virtual void draw(Surface &dest)
-    {
-        iRect bounds;
-        getBounds(bounds);
-        
-        if ( dirty )
-            render();
-        
-        surface.blt(dest, bounds.min.x, bounds.min.y);
-    }
-    
-    virtual void render() = 0;
+    virtual void draw(Surface &dest) = 0;
     virtual void actionPerformed(const mMouseEvent &me) = 0;
+    virtual void handleKeyboard() {}
+
+private:
+    Component(const Component& )
+    { }
+    void operator=(const Component& )
+    { }
 }; // end Component
 
 #endif // end __Component_hpp__

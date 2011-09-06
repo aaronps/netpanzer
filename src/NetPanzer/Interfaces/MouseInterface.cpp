@@ -40,6 +40,8 @@ NTimer MouseInterface::clicktimer;
 int MouseInterface::clickcount;
 int MouseInterface::releasecount;
 
+bool MouseInterface::isGrabMode;
+
 void MouseInterface::initialize()
 {
     const char* cursorpath = "pics/cursors/";
@@ -65,6 +67,7 @@ void MouseInterface::initialize()
     clicktimer.setTimeOut(150);
     clickcount = 0;
     releasecount = 0;
+    isGrabMode = false;
 }
 
 void MouseInterface::shutdown()
@@ -78,6 +81,14 @@ void MouseInterface::shutdown()
 void
 MouseInterface::onMouseButtonDown(SDL_MouseButtonEvent *e)
 {
+    LOGGER.info("Mouse press %d", e->button);
+//    if ( ! button_mask )
+//    {
+//        SDL_WM_GrabInput(SDL_GRAB_ON);
+//    }
+
+    button_mask |= SDL_BUTTON(e->button);
+
     if ( ! clickcount )
     {
         clicktimer.reset();
@@ -86,7 +97,6 @@ MouseInterface::onMouseButtonDown(SDL_MouseButtonEvent *e)
     clickcount++;
     
     MouseEvent event;
-    button_mask |= SDL_BUTTON(e->button);
     event.button = e->button;
     event.event = MouseEvent::EVENT_DOWN;
     event.pos.x = e->x;
@@ -97,13 +107,21 @@ MouseInterface::onMouseButtonDown(SDL_MouseButtonEvent *e)
 void
 MouseInterface::onMouseButtonUp(SDL_MouseButtonEvent *e)
 {
+    LOGGER.info("Mouse release %d", e->button);
+    button_mask &= ~(SDL_BUTTON(e->button));
+
+//    if ( ! button_mask )
+//    {
+//        SDL_WM_GrabInput(SDL_GRAB_OFF);
+//    }
+
     if ( clickcount )
     {
         releasecount++;
     }
     
     MouseEvent event;
-    button_mask &= ~(SDL_BUTTON(e->button));
+
     event.button = e->button;
     event.event = MouseEvent::EVENT_UP;
     event.pos.x = e->x;
@@ -131,3 +149,38 @@ MouseInterface::manageClickTimer()
         releasecount=0;
     }
 }
+
+void
+MouseInterface::onMouseMoved(SDL_MouseMotionEvent* e)
+{
+//    LOGGER.info("Mouse moved: %d, %d", e->x, e->y);
+    mouse_pos.x = e->x;
+    mouse_pos.y = e->y;
+//    if ( isGrabMode && e->x == mouse_pos.x && e->y == mouse_pos.y )
+//    {
+//        return; // this is the move to previous position;
+//    }
+
+//    MouseEvent event;
+//    event.event = MouseEvent::EVENT_MOVE;
+//    event.button = e->state;
+//    event.relpos.x = e->xrel;
+//    event.relpos.y = e->yrel;
+
+//    if ( ! isGrabMode )
+//    {
+//        mouse_pos.x = e->x;
+//        mouse_pos.y = e->y;
+//        event.pos.x = e->x;
+//        event.pos.y = e->y;
+//    }
+//    else
+//    {
+//        event.pos.x = mouse_pos.x;
+//        event.pos.y = mouse_pos.y;
+//        SDL_WarpMouse(mouse_pos.x, mouse_pos.y);
+//    }
+
+//    event_queue.push_back(event);
+}
+

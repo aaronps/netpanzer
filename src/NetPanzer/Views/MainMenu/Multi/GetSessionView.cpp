@@ -38,17 +38,16 @@ static int previousSessionType = _game_session_join;
 
 static void bBack()
 {
-    Desktop::setVisibilityAllWindows(false);
+    Desktop::hideAllWindows();
     Desktop::setVisibility("MainView", true);
 }
 
 void bNext()
 {
     if (gameconfig->hostorjoin == _game_session_host) {
-        Desktop::setVisibilityAllWindows(false);
+        Desktop::hideAllWindows();
 
         Desktop::setVisibility("HostView", true);
-        Desktop::setVisibility("UnitSelectionView", true);
         Desktop::setVisibility("FlagSelectionView", true);
         Desktop::setVisibility("HostOptionsView", true);
         Desktop::setVisibility("MapSelectionView", true);

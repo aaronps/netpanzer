@@ -60,16 +60,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Views/Components/Desktop.hpp"
 #include "Views/Components/ViewGlobals.hpp"
 #include "Views/MainMenu/MainMenuView.hpp"
+#include "Views/MainMenu/JoinView.hpp"
+#include "Views/MainMenu/HostView.hpp"
 #include "Views/MainMenu/OptionsTemplateView.hpp"
 #include "Views/MainMenu/OrderingView.hpp"
-#include "Views/MainMenu/SkirmishView.hpp"
 #include "Views/MainMenu/HelpView.hpp"
-#include "Views/MainMenu/Multi/JoinView.hpp"
-#include "Views/MainMenu/Multi/HostView.hpp"
+//#include "Views/MainMenu/Multi/HostView.hpp"
 #include "Views/MainMenu/Multi/GetSessionView.hpp"
-#include "Views/MainMenu/Multi/UnitSelectionView.hpp"
 #include "Views/MainMenu/Multi/FlagSelectionView.hpp"
-#include "Views/MainMenu/Multi/UnitColorView.hpp"
 #include "Views/MainMenu/Multi/HostOptionsView.hpp"
 #include "Views/MainMenu/Multi/MapSelectionView.hpp"
 #include "Views/MainMenu/Multi/PlayerNameView.hpp"
@@ -117,9 +115,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 PlayerGameManager::PlayerGameManager()
     : sdlVideo(0), heartbeat(0), infosocket(0)
 {
-    //fontManager.loadFont("fixed10", "fonts/fixed10.pcf", 10);
-
-    showNewPanel = false;
 }
 
 //-----------------------------------------------------------------
@@ -172,7 +167,7 @@ void PlayerGameManager::initializeInputDevices()
 //-----------------------------------------------------------------
 void PlayerGameManager::initializeWindowSubSystem()
 {
-    GameManager::loadPalette("netp");
+/*    GameManager::loadPalette("netp");
 
     Desktop::add(new GameView());
     Desktop::add(new RankView());
@@ -183,12 +178,15 @@ void PlayerGameManager::initializeWindowSubSystem()
     Desktop::add(new HelpScrollView());
 
     Desktop::add(new LoadingView());
-
+*/
     GameManager::loadPalette("netpmenu");
 
-    Desktop::add(new MapSelectionView());
+
     Desktop::add(new MainMenuView());
     Desktop::add(new JoinView());
+    Desktop::add(new XHostView());
+/*
+    Desktop::add(new MapSelectionView());
     Desktop::add(new HostView());
     Desktop::add(new GetSessionView());
     Desktop::add(new OptionsTemplateView());
@@ -208,9 +206,11 @@ void PlayerGameManager::initializeWindowSubSystem()
 
     Desktop::add(new IPAddressView());
     Desktop::add(new ServerListView());
-
-    Desktop::setVisibilityAllWindows(false);
+*/
+    Desktop::hideAllWindows();
     Desktop::setVisibility("MainView", true);
+//    Desktop::setVisibility("XJoinView", true);
+    Desktop::setVisibility("XHostView", true);
 
     Desktop::checkResolution(iXY(640,480), iXY(screen->getWidth(),screen->getHeight()));
     Desktop::checkViewPositions(iXY(screen->getWidth(),screen->getHeight()));
@@ -460,17 +460,6 @@ bool PlayerGameManager::mainLoop()
 //-----------------------------------------------------------------
 void PlayerGameManager::processSystemKeys()
 {
-    if (Desktop::getVisible("GameView")) {
-        if (KeyboardInterface::getKeyPressed( SDLK_F12 )){
-            showNewPanel = !showNewPanel;
-        }
-        
-        if (KeyboardInterface::getKeyPressed( SDLK_F5 )) {
-            //  DEBUG VIEW
-            Desktop::toggleVisibility( "LibView" );
-        }
-    }
-
     if ( KeyboardInterface::getKeyState(SDLK_F9) )
     {
         Screen->doScreenshoot();
@@ -484,87 +473,96 @@ void PlayerGameManager::processSystemKeys()
         }
     } // ** LFT_ALT or RGT_ALT pressed
 
-    if (Desktop::getView("GameView")->getVisible()) {
-        if (KeyboardInterface::getKeyPressed(SDLK_m)) {
-            Desktop::toggleVisibility( "MiniMapView" );
+    if (Desktop::getVisible("GameView"))
+    {
+        if (KeyboardInterface::getKeyPressed( SDLK_F5 )) {
+            //  DEBUG VIEW
+            Desktop::toggleVisibility( "LibView" );
         }
-        if (KeyboardInterface::getKeyPressed(SDLK_TAB) ) {
-            Desktop::toggleVisibility( "RankView" );
-        }
-        if (KeyboardInterface::getKeyPressed(SDLK_F3)) {
-            Desktop::toggleVisibility( "DesktopView" );
-        }
-        if (KeyboardInterface::getKeyPressed(SDLK_F4)) {
-            Desktop::toggleVisibility( "CodeStatsView" );
-        }
-        if (KeyboardInterface::getKeyPressed(SDLK_F1)) {
-            Desktop::toggleVisibility( "HelpScrollView" );
-        }
+        if (Desktop::getView("GameView")->getVisible())
+        {
+            if (KeyboardInterface::getKeyPressed(SDLK_m)) {
+                Desktop::toggleVisibility( "MiniMapView" );
+            }
+            if (KeyboardInterface::getKeyPressed(SDLK_TAB) ) {
+                Desktop::toggleVisibility( "RankView" );
+            }
+            if (KeyboardInterface::getKeyPressed(SDLK_F3)) {
+                Desktop::toggleVisibility( "DesktopView" );
+            }
+            if (KeyboardInterface::getKeyPressed(SDLK_F4)) {
+                Desktop::toggleVisibility( "CodeStatsView" );
+            }
+            if (KeyboardInterface::getKeyPressed(SDLK_F1)) {
+                Desktop::toggleVisibility( "HelpScrollView" );
+            }
 
-        if (KeyboardInterface::getKeyPressed(SDLK_ESCAPE)) {
-            if (Desktop::getView("GameView")->getVisible())
+            if (KeyboardInterface::getKeyPressed(SDLK_ESCAPE))
             {
-                if (!Desktop::getView("OptionsView")->getVisible() &&
-                        !Desktop::getView("SoundView")->getVisible() &&
-                        !Desktop::getView("ControlsView")->getVisible() &&
-                        !Desktop::getView("InterfaceView")->getVisible() &&
-                        !Desktop::getView("VisualsView")->getVisible())
+                if (Desktop::getView("GameView")->getVisible())
                 {
-                    
-                    View *v = Desktop::getView("OptionsView");
-                    assert(v != 0);
-                    ((OptionsTemplateView *)v)->initButtons();
-                    ((OptionsTemplateView *)v)->setAlwaysOnBottom(false);
+                    if (!Desktop::getView("OptionsView")->getVisible() &&
+                            !Desktop::getView("SoundView")->getVisible() &&
+                            !Desktop::getView("ControlsView")->getVisible() &&
+                            !Desktop::getView("InterfaceView")->getVisible() &&
+                            !Desktop::getView("VisualsView")->getVisible())
+                    {
 
-                    v = Desktop::getView("SoundView");
-                    assert(v != 0);
-                    ((SoundView *)v)->initButtons();
-                    ((OptionsTemplateView *)v)->setAlwaysOnBottom(false);
+                        View *v = Desktop::getView("OptionsView");
+                        assert(v != 0);
+                        ((OptionsTemplateView *)v)->initButtons();
+                        ((OptionsTemplateView *)v)->setAlwaysOnBottom(false);
 
-                    v = Desktop::getView("ControlsView");
-                    assert(v != 0);
-                    ((ControlsView *)v)->initButtons();
-                    ((OptionsTemplateView *)v)->setAlwaysOnBottom(false);
+                        v = Desktop::getView("SoundView");
+                        assert(v != 0);
+                        ((SoundView *)v)->initButtons();
+                        ((OptionsTemplateView *)v)->setAlwaysOnBottom(false);
 
-                    v = Desktop::getView("VisualsView");
-                    assert(v != 0);
-                    ((VisualsView *)v)->initButtons();
-                    ((OptionsTemplateView *)v)->setAlwaysOnBottom(false);
+                        v = Desktop::getView("ControlsView");
+                        assert(v != 0);
+                        ((ControlsView *)v)->initButtons();
+                        ((OptionsTemplateView *)v)->setAlwaysOnBottom(false);
 
-                    v = Desktop::getView("InterfaceView");
-                    assert(v != 0);
-                    ((InterfaceView *)v)->initButtons();
-                    ((OptionsTemplateView *)v)->setAlwaysOnBottom(false);
+                        v = Desktop::getView("VisualsView");
+                        assert(v != 0);
+                        ((VisualsView *)v)->initButtons();
+                        ((OptionsTemplateView *)v)->setAlwaysOnBottom(false);
 
-                    Desktop::setVisibility("OptionsView", true);
-                    Desktop::setActiveView("OptionsView");
-                }
-                else
-                {
-                    View *v = Desktop::getView("OptionsView");
-                    assert(v != 0);
-                    ((OptionsTemplateView *)v)->setAlwaysOnBottom(true);
-                    ((OptionsTemplateView *)v)->setVisible(false);
+                        v = Desktop::getView("InterfaceView");
+                        assert(v != 0);
+                        ((InterfaceView *)v)->initButtons();
+                        ((OptionsTemplateView *)v)->setAlwaysOnBottom(false);
 
-                    v = Desktop::getView("InterfaceView");
-                    assert(v != 0);
-                    ((OptionsTemplateView *)v)->setAlwaysOnBottom(true);
-                    ((OptionsTemplateView *)v)->setVisible(false);
+                        Desktop::setVisibility("OptionsView", true);
+                        Desktop::setActiveView("OptionsView");
+                    }
+                    else
+                    {
+                        View *v = Desktop::getView("OptionsView");
+                        assert(v != 0);
+                        ((OptionsTemplateView *)v)->setAlwaysOnBottom(true);
+                        ((OptionsTemplateView *)v)->setVisible(false);
 
-                    v = Desktop::getView("VisualsView");
-                    assert(v != 0);
-                    ((OptionsTemplateView *)v)->setAlwaysOnBottom(true);
-                    ((OptionsTemplateView *)v)->setVisible(false);
+                        v = Desktop::getView("InterfaceView");
+                        assert(v != 0);
+                        ((OptionsTemplateView *)v)->setAlwaysOnBottom(true);
+                        ((OptionsTemplateView *)v)->setVisible(false);
 
-                    v = Desktop::getView("SoundView");
-                    assert(v != 0);
-                    ((OptionsTemplateView *)v)->setAlwaysOnBottom(true);
-                    ((OptionsTemplateView *)v)->setVisible(false);
+                        v = Desktop::getView("VisualsView");
+                        assert(v != 0);
+                        ((OptionsTemplateView *)v)->setAlwaysOnBottom(true);
+                        ((OptionsTemplateView *)v)->setVisible(false);
 
-                    v = Desktop::getView("ControlsView");
-                    assert(v != 0);
-                    ((OptionsTemplateView *)v)->setAlwaysOnBottom(true);
-                    ((OptionsTemplateView *)v)->setVisible(false);
+                        v = Desktop::getView("SoundView");
+                        assert(v != 0);
+                        ((OptionsTemplateView *)v)->setAlwaysOnBottom(true);
+                        ((OptionsTemplateView *)v)->setVisible(false);
+
+                        v = Desktop::getView("ControlsView");
+                        assert(v != 0);
+                        ((OptionsTemplateView *)v)->setAlwaysOnBottom(true);
+                        ((OptionsTemplateView *)v)->setVisible(false);
+                    }
                 }
             }
         }

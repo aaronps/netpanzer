@@ -37,13 +37,15 @@ protected:
     FlagSelectionView* fsv;
 public:
     FlagButton(FlagSelectionView* fsv, int x, int y, Surface &s, FlagID flagCode)
-        : Button("flag")
+        : Button()
     {
         this->fsv = fsv;
         setLocation(x, y);
         setSize(s.getWidth(), s.getHeight());
-        bimage.create(s.getWidth(), s.getHeight(), 1);
-        s.blt(bimage, 0, 0);
+        Surface sf;
+        sf.create(s.getWidth(), s.getHeight(), 1);
+        s.blt(sf, 0, 0);
+        bimage.pack(sf);
         fcode = flagCode;
         
         setExtraBorder();
@@ -151,7 +153,7 @@ void FlagSelectionView::doDraw(Surface &viewArea, Surface &clientArea)
     
     menu_flags.blt(clientArea, loc_player_flag.x, loc_player_flag.y);
 
-    View::doDraw(viewArea, clientArea);
+//    View::doDraw(viewArea, clientArea);
 
 } // end FlagSelectionView::doDraw
 void
