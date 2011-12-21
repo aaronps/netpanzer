@@ -32,7 +32,6 @@ public:
     PlayerState* player;
     UnitID       id;
     UnitState    unit_state;
-    bool         in_sync_flag;
 
     UnitBase(PlayerState* newPlayer, UnitID newId)
         : player(newPlayer), id(newId)
@@ -43,9 +42,15 @@ public:
     virtual void processMessage(const UnitMessage* ) = 0;
     virtual void evalCommandOpcode(const UnitOpcode* ) = 0;
     virtual void updateState() = 0;
-    virtual void syncUnit() = 0;
     virtual void offloadGraphics(SpriteSorter& ) = 0;
     virtual void soundSelected() = 0;
+
+    bool isWeaponInRange(const iXY& loc) const
+    {
+        int x = loc.x - unit_state.location.x;
+        int y = loc.y - unit_state.location.y;
+        return (x*x + y*y) < unit_state.weapon_range;
+    }
 
 private:
     friend class UnitInterface;

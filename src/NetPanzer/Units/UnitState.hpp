@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "ArrayUtil/BoundBox.hpp"
 #include "Types/Angle.hpp"
-
+#include "Interfaces/MapInterface.hpp"
 #include "UnitLifecycles.hpp"
 
 enum { _threat_level_all_clear,
@@ -30,77 +30,45 @@ enum { _threat_level_all_clear,
        _threat_level_defending
      };
 
-#ifdef MSVC
-#pragma pack(1)
-#endif
-
-class NetworkUnitState
-{
-public:
-    NetworkUnitState()
-    { }
-
-private:
-    Uint8     unit_type;
-
-    Sint32     location_x;
-    Sint32     location_y;
-    Sint32     bbox_min_x;
-    Sint32     bbox_min_y;
-    Sint32     bbox_max_x;
-    Sint32     bbox_max_y;
-    
-    NetworkAngleInt body_angle;
-    NetworkAngleInt turret_angle;
-
-    Uint16    orientation;
-    Uint16    speed_rate;
-    Uint16    speed_factor;
-
-    Uint16    reload_time;
-    Sint16     max_hit_points;
-    Sint16     hit_points;
-    Uint16    damage_factor;
-    Uint32    weapon_range;
-    Uint32    defend_range;
-
-    Uint8 threat_level;
-    Uint8 lifecycle_state;
-
-    friend class UnitState;
-} __attribute__((packed));
-
-#ifdef MSVC
-#pragma pack()
-#endif
-
 class UnitState
 {
 public:
-    unsigned char  unit_type;
+    unsigned char   unit_type;
 
     /// true if the unit is currently selected
-    bool           select;
-    /// position of the unit
-    iXY            location;
-    BoundBox       bbox;
+    bool            select;
 
-    AngleInt       body_angle;
-    AngleInt       turret_angle;
+    // world pixel location of the unit
+    iXY             location;
 
-    unsigned short orientation;
-    unsigned short speed_rate;
-    unsigned short speed_factor;
+    // map xy location
+    iXY             map_location;
 
-    unsigned short reload_time;
-    short	   max_hit_points;
-    short          hit_points;
-    unsigned short damage_factor;
-    unsigned long  weapon_range;
-    unsigned long  defend_range;
+    // world pixel location of top left tile corner
+    iXY             map_px_location;
 
-    unsigned char  threat_level;
-    unsigned char  lifecycle_state;
+    // 1/256 of a tile
+    iXY             subtile_location;
+
+    BoundBox        bbox;
+
+    AngleInt        body_angle;
+    AngleInt        turret_angle;
+
+    unsigned short  orientation;
+    unsigned short  speed_rate;
+    unsigned short  speed_factor;
+    short           tilespeed;
+
+    unsigned short  reload_time;
+    short	    max_hit_points;
+    short           hit_points;
+    unsigned short  damage_factor;
+    unsigned long   weapon_range;
+    unsigned long   defend_range;
+
+    unsigned char   threat_level;
+    unsigned char   lifecycle_state;
 
     UnitState( );
 
@@ -112,8 +80,54 @@ public:
     int percentDamageInt();
     float percentDamageFloat();
 
-    NetworkUnitState getNetworkUnitState() const;
-    void setFromNetworkUnitState(const NetworkUnitState& state);
+    void setInitialLocation(const iXY& map_loc)
+    {
+        subtile_location.x = 128;
+        subtile_location.y = 128;
+        map_location = map_loc;
+        MapInterface::mapXYtoTopPointXY(map_loc, location);
+        location.x += 128>>3;
+        location.y += 128>>3;
+    }
+
+    void subtileMove(const int x, const int y)
+    {
+        subtile_location.x += x;
+        subtile_location.y += y;
+
+        location.x &= ~0x1f; // clear the tile bits
+        location.y &= ~0x1f; // clear the tile bits
+
+        if ( subtile_location.x >= 256 )
+        {
+            subtile_location.x &= 0xff;
+            ++map_location.x;
+            location.x += 32; // XXX tile size
+        }
+        else if ( subtile_location.x < 0 )
+        {
+            subtile_location.x &= 0xff;
+            --map_location.x;
+            location.x -= 32; // XXX tile size
+        }
+
+        if ( subtile_location.y >= 256 )
+        {
+            subtile_location.y &= 0xff;
+            ++map_location.y;
+            location.y += 32; // XXX tile size
+        }
+        else if ( subtile_location.y < 0 )
+        {
+            subtile_location.y &= 0xff;
+            --map_location.y;
+            location.y -= 32; // XXX tile size
+        }
+
+        location.x += subtile_location.x >> 3;
+        location.y += subtile_location.y >> 3;
+    }
+
 };
 
 #endif

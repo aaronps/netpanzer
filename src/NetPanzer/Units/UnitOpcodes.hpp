@@ -21,8 +21,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Units/UnitBase.hpp"
 #include <queue>
 
-enum { _unit_opcode_flag_sync = 0x01 };
-
 #ifdef MSVC
 #pragma pack(1)
 #endif
@@ -31,9 +29,8 @@ enum { _unit_opcode_flag_sync = 0x01 };
 #define _UNIT_OPCODE_TURRET_TRACK_POINT 2
 #define _UNIT_OPCODE_TURRET_TRACK_TARGET 3
 #define _UNIT_OPCODE_FIRE_WEAPON 4
-#define _UNIT_OPCODE_SYNC_UNIT 5
-#define _UNIT_OPCODE_UPDATE_STATE 6
-#define _UNIT_OPCODE_DESTRUCT 7
+#define _UNIT_OPCODE_UPDATE_STATE 5
+#define _UNIT_OPCODE_DESTRUCT 6
 
 // do not use this directly, cast to 1 of the UnitOpcode classes...
 struct UnitOpcodeStruct
@@ -58,8 +55,6 @@ public:
 private:
     Uint16 unit_id;
 public:
-    Uint8 flags;
-
     void setUnitID(UnitID id)
     {
         unit_id = htol16(id);
@@ -85,9 +80,6 @@ public:
         case _UNIT_OPCODE_FIRE_WEAPON:
             return(sizeof(UnitOpcode)+sizeof(Uint16)*2);
             break;
-        case _UNIT_OPCODE_SYNC_UNIT:
-            return(sizeof(UnitOpcode));
-            break;
         case _UNIT_OPCODE_UPDATE_STATE:
             return(sizeof(UnitOpcode)+sizeof(Sint16));
             break;
@@ -112,7 +104,6 @@ public:
 
     MoveOpcode( )
     {
-        flags = 0;
         opcode = _UNIT_OPCODE_MOVE;
 
         square = 0;
@@ -143,7 +134,6 @@ public:
 
     TurretTrackPointOpcode( )
     {
-        flags = 0;
         opcode = _UNIT_OPCODE_TURRET_TRACK_POINT;
 
         target_x = target_y = 0;
@@ -172,7 +162,6 @@ public:
 
     TurretTrackTargetOpcode( )
     {
-        flags = 0;
         opcode = _UNIT_OPCODE_TURRET_TRACK_TARGET;
 
         targetUnitID = 0;
@@ -200,7 +189,6 @@ public:
 
     FireWeaponOpcode( )
     {
-        flags = 0;
         opcode = _UNIT_OPCODE_FIRE_WEAPON;
     }
 
@@ -217,18 +205,6 @@ public:
 
 } __attribute__((packed));
 
-
-class SyncUnitOpcode : public UnitOpcode
-{
-public:
-    SyncUnitOpcode( )
-    {
-        flags = 0;
-        opcode = _UNIT_OPCODE_SYNC_UNIT;
-    }
-} __attribute__((packed));
-
-
 class UpdateStateUnitOpcode : public UnitOpcode
 {
 private:
@@ -236,7 +212,6 @@ private:
 public:
     UpdateStateUnitOpcode( )
     {
-        flags = 0;
         opcode = _UNIT_OPCODE_UPDATE_STATE;
     }
 
@@ -257,7 +232,6 @@ class DestructUnitOpcode : public UnitOpcode
 public:
     DestructUnitOpcode( )
     {
-        flags = 0;
         opcode = _UNIT_OPCODE_DESTRUCT;
     }
 } __attribute__((packed));

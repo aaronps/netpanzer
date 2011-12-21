@@ -28,9 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Classes/Sprite.hpp"
 #include "Classes/SelectionBoxSprite.hpp"
 
-enum { _control_idle,
-       _control_move,
-       _control_move_map_square,
+enum { _control_move_map_square,
        _control_turret_track_point,
        _control_turret_track_target,
        _control_gunnery_location,
@@ -39,15 +37,12 @@ enum { _control_idle,
 enum { _ai_command_idle,
        _ai_command_move_to_loc,
        _ai_command_attack_unit,
-       _ai_command_manual_move,
        _ai_command_defend_hold };
 
 enum { _aiFsmMoveToLoc_path_generate,
        _aiFsmMoveToLoc_check_goal,
-       _aiFsmMoveToLoc_next_move,
-       _aiFsmMoveToLoc_move_wait,
        _aiFsmMoveToLoc_wait_clear_loc,
-       _aiFsmMoveToLoc_check_fsm_transition };
+       _aiFsmMoveToLoc_move_wait };
 
 enum { _aiFsmAttackUnit_path_generate,
        _aiFsmAttackUnit_range_check,
@@ -60,10 +55,6 @@ enum { _aiFsmAttackUnit_path_generate,
 
 enum { _aiFsmDefendHold_search_for_enemy,
        _aiFsmDefendHold_attack_enemy };
-
-enum { _aiFsmManualMove_next_move,
-       _aiFsmManualMove_move_wait,
-       _aiFsmManualMove_check_fsm_transition };
 
 enum { _external_event_null,
        _external_event_pending_unit_destruct };
@@ -85,13 +76,10 @@ protected:
     std::string fireSound;
     unsigned short weaponType;
 
-    Timer unit_state_timer;
-    Timer fsm_timer;
     bool fsm_active_list[ 7 ];
 
     PathList path;
     bool path_generated;
-    bool critical_ai_section;
     bool ai_fsm_transition_complete;
 
     unsigned short reload_counter;
@@ -110,22 +98,18 @@ protected:
     // ** FSMs and AI FSMs
     unsigned short fsmBodyRotate_rotation;
     long           fsmBodyRotate_goal_angle;
-    void    setFsmBodyRotate( long goal_angle, unsigned short rotation );
+    void setFsmBodyRotate( long goal_angle, unsigned short rotation );
     bool fsmBodyRotate();
 
     unsigned short fsmTurretRotate_rotation;
     long           fsmTurretRotate_goal_angle;
-    void    setFsmTurretRotate( long goal_angle, unsigned short rotation );
+    void setFsmTurretRotate( long goal_angle, unsigned short rotation );
     bool fsmTurretRotate();
 
-    float interpolation_speed;
-    TimeStamp start_move_stamp;
-    TimeStamp end_move_stamp;
-    bool     fsmMove_first_stamp;
     signed char fsmMove_offset_x;
     signed char fsmMove_offset_y;
-    unsigned char fsmMove_moves_counter;
-    unsigned char fsmMove_moves_per_square;
+    iXY         fsmMove_to_move;
+    iXY         fsmMove_moved;
     void setFsmMove( unsigned short orientation );
     bool fsmMove();
 
@@ -163,41 +147,33 @@ protected:
 
     void aiFsmIdle();
 
-    unsigned char aiFsmDefendHold_state;
-    Timer	  aiFsmDefendHold_search_timer;
-    UnitID  aiFsmDefendHold_target_ID;
+    unsigned char   aiFsmDefendHold_state;
+    int             aiFsmDefendHold_search_counter;
+    UnitID          aiFsmDefendHold_target_ID;
     void setAiFsmDefendHold();
     void aiFsmDefendHold();
 
-    iXY aiFsmMoveToLoc_goal;
-    unsigned char aiFsmMoveToLoc_state;
-    unsigned long aiFsmMoveToLoc_next_square;
-    iXY aiFsmMoveToLoc_next_loc;
-    iXY aiFsmMoveToLoc_prev_loc;
-    Timer	   aiFsmMoveToLoc_wait_timer;
-    bool  aiFsmMoveToLoc_path_not_finished;
-    bool ruleMoveToLoc_GoalReached();
+    iXY             aiFsmMoveToLoc_goal;
+    unsigned char   aiFsmMoveToLoc_state;
+    unsigned long   aiFsmMoveToLoc_next_square;
+    iXY             aiFsmMoveToLoc_next_loc;
+    iXY             aiFsmMoveToLoc_prev_loc;
+    int             aiFsmMoveToLoc_wait_count;
+    bool            aiFsmMoveToLoc_next_marked;
     void aiFsmMoveToLoc_OnExitCleanUp();
     void aiFsmMoveToLoc();
 
-    UnitID   aiFsmAttackUnit_target_ID;
-    iXY aiFsmAttackUnit_target_goal_loc;
-    unsigned char aiFsmAttackUnit_state;
-    unsigned long aiFsmAttackUnit_next_square;
-    iXY aiFsmAttackUnit_next_loc;
-    iXY aiFsmAttackUnit_prev_loc;
-    Timer	   aiFsmAttackUnit_wait_timer;
-    bool  aiFsmAttackUnit_path_not_finished;
-    bool  aiFsmAttackUnit_target_destroyed;
+    UnitID          aiFsmAttackUnit_target_ID;
+    iXY             aiFsmAttackUnit_target_goal_loc;
+    unsigned char   aiFsmAttackUnit_state;
+    unsigned long   aiFsmAttackUnit_next_square;
+    iXY             aiFsmAttackUnit_next_loc;
+    iXY             aiFsmAttackUnit_prev_loc;
+    int             aiFsmAttackUnit_wait_counter;
+    bool            aiFsmAttackUnit_path_not_finished;
+    bool            aiFsmAttackUnit_target_destroyed;
     void aiFsmAttackUnit_OnExitCleanUp();
     void aiFsmAttackUnit();
-
-
-    unsigned char aiFsmManualMove_move_orientation;
-    unsigned char aiFsmManualMove_state;
-    iXY aiFsmManualMove_next_loc;
-    iXY aiFsmManualMove_prev_loc;
-    void aiFsmManualMove();
 
     void fireWeapon( iXY &target_loc );
     virtual unsigned short launchProjectile();
@@ -214,7 +190,6 @@ protected:
     void unitOpcodeTrackPoint(const UnitOpcode* opcode );
     void unitOpcodeTrackTarget(const UnitOpcode* opcode );
     void unitOpcodeFireWeapon(const UnitOpcode* opcode );
-    void unitOpcodeSync(const UnitOpcode* opcode );
     void unitOpcodeUpdateState(const UnitOpcode* opcode );
     void unitOpcodeDestruct(const UnitOpcode* opcode );
 
@@ -230,12 +205,10 @@ protected:
 
     void setCommandMoveToLoc(const UMesgAICommand* message);
     void setCommandAttackUnit(const UMesgAICommand* message);
-    void setCommandManualMove(const UMesgAICommand* message);
     void setCommandManualFire(const UMesgAICommand* message);
 
     void messageAICommand(const UnitMessage* message);
     void messageWeaponHit(const UnitMessage* message);
-    void messageSelectBoxUpdate(const UnitMessage* message);
     void messageSelfDestruct(const UnitMessage* message);
     
     void setUnitProperties( unsigned char utype );
@@ -248,8 +221,6 @@ public:
     virtual void processMessage(const UnitMessage* message);
 
     virtual void evalCommandOpcode(const UnitOpcode* opcode);
-
-    virtual void syncUnit();
 
     virtual void offloadGraphics( SpriteSorter &sorter );
 

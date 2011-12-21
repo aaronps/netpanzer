@@ -23,13 +23,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 enum { _umesg_ai_command,
        _umesg_weapon_hit,
        _umesg_end_lifecycle,
-       _umesg_update_select_box_info,
        _umesg_self_destruct };
 
 enum { _command_move_to_loc,
        _command_attack_unit,
-       _command_start_manual_move,
-       _command_stop_manual_move,
        _command_manual_fire };
 
 #ifdef MSVC
@@ -44,8 +41,6 @@ private:
     Sint32 goal_loc_x;
     Sint32 goal_loc_y;
     Uint16 target_id;
-public:
-    Uint8 manual_move_orientation;
 private:
     Sint32 target_loc_x;
     Sint32 target_loc_y;
@@ -55,7 +50,6 @@ public:
         command = 0;
         goal_loc_x = goal_loc_y = 0;
         target_id = 0;
-        manual_move_orientation = 0;
         target_loc_x = target_loc_y = 0;
     }
 
@@ -65,7 +59,6 @@ public:
         command = 0;
         goal_loc_x = goal_loc_y = 0;
         target_id = 0;
-        manual_move_orientation = 0;
         target_loc_x = target_loc_y = 0;
     }
 
@@ -75,7 +68,6 @@ public:
         command = _command_move_to_loc;
         goal_loc_x = htol32(goal.x);
         goal_loc_y = htol32(goal.y);
-        manual_move_orientation = 0;
     }
 
     void setTargetUnit(UnitID target)
@@ -83,21 +75,6 @@ public:
         message_id = _umesg_ai_command;
         command = _command_attack_unit;
         target_id = htol16(target);
-        manual_move_orientation = 0;
-    }
-
-    void setStartManualMove(unsigned char orientation)
-    {
-        message_id = _umesg_ai_command;
-        command = _command_start_manual_move;
-        manual_move_orientation = orientation;
-    }
-
-    void setStopManualMove()
-    {
-        message_id = _umesg_ai_command;
-        command = _command_stop_manual_move;
-        manual_move_orientation = 0;
     }
 
     void setManualFire(const iXY& target)
@@ -106,7 +83,6 @@ public:
         command = _command_manual_fire;
         target_loc_x = htol32(target.x);
         target_loc_y = htol32(target.y);
-        manual_move_orientation = 0;
     }
 
     iXY getGoalLoc() const
@@ -193,41 +169,6 @@ public:
     UnitID getDestroyer() const
     {
         return ltoh16(destroyer);
-    }
-}
-__attribute__((packed));
-
-enum { _select_box_allie_visibility,
-       _select_box_flag_visiblity,
-       _select_box_is_allied
-     };
-
-class UMesgUpdateSelectBoxInfo : public UnitMessage
-{
-public:
-    Uint8 request_type;
-    Uint8 allie_flag_visiblity;
-    Uint8 flag_visiblity;
-    Uint8 allied_state;
-
-    void set(unsigned char request, bool state_value)
-    {
-        message_id = _umesg_update_select_box_info;
-        request_type = request;
-        switch( request ) {
-        case _select_box_allie_visibility :
-            allie_flag_visiblity = state_value;
-            break;
-
-        case _select_box_flag_visiblity :
-            flag_visiblity = state_value;
-            break;
-
-        case _select_box_is_allied :
-            allied_state = state_value;
-            break;
-
-        } // ** switch
     }
 }
 __attribute__((packed));

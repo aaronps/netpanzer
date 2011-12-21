@@ -222,7 +222,7 @@ BotPlayer::unitOccupyOupost(UnitBase *unit)
         iXY map_loc;
         MapInterface::pointXYtoMapXY(
                 outpost->location + occupation_pad_offset,
-                &map_loc);
+                map_loc);
         moveUnit(unit, map_loc);
     }
 }

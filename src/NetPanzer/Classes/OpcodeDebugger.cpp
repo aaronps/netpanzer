@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 void OpcodeDebugger::logOpcode(std::ostream& log, UnitOpcode* opcode)
 {
     log << " UNIT:" << opcode->getUnitID()
-        << " FL:" << (int) opcode->flags << " ";
+        << " ";
     switch(opcode->opcode) {
         case _UNIT_OPCODE_MOVE:
         {
@@ -59,12 +59,6 @@ void OpcodeDebugger::logOpcode(std::ostream& log, UnitOpcode* opcode)
             FireWeaponOpcode* weaponcode = (FireWeaponOpcode*) opcode;
             log << "fire: X:" << weaponcode->getTarget().x
                 << " Y:" << weaponcode->getTarget().y;
-            break;
-        }
-        case _UNIT_OPCODE_SYNC_UNIT:
-        {
-            //SyncUnitOpcode* synccode = (SyncUnitOpcode*) opcode;
-            log << "sync";
             break;
         }
         case _UNIT_OPCODE_UPDATE_STATE:

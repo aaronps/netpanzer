@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Classes/UnitMessage.hpp"
 #include "Classes/PlayerState.hpp"
 #include "Util/Timer.hpp"
+#include "Util/NTimer.hpp"
 #include "Classes/PlacementMatrix.hpp"
 
 #include "Classes/Network/UnitNetMessage.hpp"
@@ -153,6 +154,8 @@ protected:
 protected:
     friend class Vehicle;
     
+    static NTimer logic_timer;
+
     // Network Message Handler Variables
     static Timer message_timer;
     static Timer no_guarantee_message_timer;
@@ -164,7 +167,6 @@ protected:
         opcode_encoder.encode(opcode);
     }
 
-    static void unitSyncMessage(const NetMessage *net_message );
     static void unitOpcodeMessage(const NetMessage *net_message, size_t size);
     static void unitDestroyMessage(const NetMessage *net_message );
     static void unitCreateMessage(const NetMessage *net_message );

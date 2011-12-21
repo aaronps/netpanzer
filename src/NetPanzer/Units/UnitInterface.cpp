@@ -61,6 +61,7 @@ UnitOpcodeEncoder UnitInterface::opcode_encoder;
 
 Timer UnitInterface::message_timer;
 Timer UnitInterface::no_guarantee_message_timer;
+NTimer UnitInterface::logic_timer;
 
 unsigned long   UnitInterface::sync_units_iterator;
 bool	        UnitInterface::sync_units_complete_flag;
@@ -84,6 +85,19 @@ void UnitInterface::initialize( unsigned long max_units )
     unit_bucket_array.initialize(MapInterface::getSize(), TileInterface::getTileSize() );
 
     lastUnitID = 0;
+
+    /* Timer logic:
+        The timer will start at the next exact second.
+        As the logic will run 16 times per seccond, that is 62.5 ms each, but
+        this uses integer only.
+        So we do first step in 63 ms, second 62, thirth 63, 62,63,62,63...
+        This trick is done by or'ing 1 with the timeout each step.
+    */
+    logic_timer.reset();
+    logic_timer.setTimeOut(63);
+    Uint32 t = logic_timer.getStartTime();
+    logic_timer.reset(t+(1000-(t%1000))); // timer starts next exact second.
+
     message_timer.changeRate( 8 );
     no_guarantee_message_timer.changeRate( 15 );
 
@@ -209,34 +223,41 @@ void UnitInterface::removeUnit(Units::iterator i)
 
 void UnitInterface::updateUnitStatus()
 {
-    for(Units::iterator i = units.begin(); i != units.end(); /*nothing*/ ) {
-        UnitBase* unit = i->second;
-	    
-        if (unit->unit_state.lifecycle_state == _UNIT_LIFECYCLE_INACTIVE) {
-            Units::iterator next = i;
-            ++next;
-            removeUnit(i);
-            i = next;
-            continue;
+    // XXX consider getting the time now and reuse each loop.
+    while ( logic_timer.isTimeOut() )
+    {
+        for(Units::iterator i = units.begin(); i != units.end(); /*nothing*/ ) {
+            UnitBase* unit = i->second;
+
+            if (unit->unit_state.lifecycle_state == _UNIT_LIFECYCLE_INACTIVE) {
+                Units::iterator next = i;
+                ++next;
+                removeUnit(i);
+                i = next;
+                continue;
+            }
+
+            unsigned long pre_update_bucket_index;
+            unsigned long post_update_bucket_index;
+
+            pre_update_bucket_index
+                = unit_bucket_array.worldLocToBucketIndex(
+                        unit->unit_state.location );
+            unit->updateState();
+
+            post_update_bucket_index
+                = unit_bucket_array.worldLocToBucketIndex(
+                        unit->unit_state.location );
+
+            if ( post_update_bucket_index != pre_update_bucket_index ) {
+                unit_bucket_array.moveUnit(unit->id,
+                        pre_update_bucket_index, post_update_bucket_index );
+            }
+            ++i;
         }
-	    
-        unsigned long pre_update_bucket_index;
-        unsigned long post_update_bucket_index;
 
-        pre_update_bucket_index 
-            = unit_bucket_array.worldLocToBucketIndex(
-                    unit->unit_state.location );
-        unit->updateState();
-
-        post_update_bucket_index 
-            = unit_bucket_array.worldLocToBucketIndex(
-                    unit->unit_state.location );
-
-        if ( post_update_bucket_index != pre_update_bucket_index ) {
-            unit_bucket_array.moveUnit(unit->id,
-                    pre_update_bucket_index, post_update_bucket_index );
-        }
-        ++i;
+        logic_timer.reset(logic_timer.getStartTime()+logic_timer.getTimeOut());
+        logic_timer.setTimeOut(logic_timer.getTimeOut()|1); // flip each time
     }
 
     if ( NetworkState::status == _network_state_server ) {
@@ -658,7 +679,7 @@ bool UnitInterface::queryUnitAtMapLoc(iXY map_loc, UnitID *queary_unit_id)
         UnitBase* unit = i->second;
         UnitState* unit_state = & unit->unit_state;
             
-        MapInterface::pointXYtoMapXY( unit_state->location, &unit_map_loc );
+        MapInterface::pointXYtoMapXY( unit_state->location, unit_map_loc );
         if( map_loc == unit_map_loc ) {
             *queary_unit_id = unit->id;
             return true;
@@ -725,31 +746,6 @@ void UnitInterface::unitManagerMesgEndLifecycle(const UnitMessage* message)
         score_update.set(player1->getID(), player2->getID(),
                 (UnitType) lifecycle_update->unit_type);
         SERVER->broadcastMessage(&score_update, sizeof(PlayerScoreUpdate));
-    }
-}
-
-
-// ******************************************************************
-
-void UnitInterface::unitSyncMessage(const NetMessage *net_message)
-{
-    const UnitIniSyncMessage* sync_message 
-        = (const UnitIniSyncMessage *) net_message;
-
-    try {
-        std::map<UnitID, UnitBase*>::iterator uit = units.find(sync_message->getUnitID());
-        if ( uit != units.end() ) {
-            LOGGER.warning("UnitInterface::unitSyncMessage() Received an existing unit [%d]",
-                            sync_message->getUnitID());
-            return;
-        }
-        UnitBase* unit = newUnit(sync_message->unit_type,
-                iXY(sync_message->getLocX(), sync_message->getLocY()),
-                sync_message->getPlayerID(), sync_message->getUnitID());
-        unit->in_sync_flag = false;
-        addNewUnit(unit);
-    } catch(std::exception& e) {
-        LOGGER.warning("UnitInterface::unitSyncMessage() Couldn't sync unit '%s'", e.what());
     }
 }
 
@@ -825,10 +821,6 @@ void UnitInterface::unitSyncIntegrityCheckMessage(const NetMessage* )
 void UnitInterface::processNetMessage(const NetMessage* net_message, size_t size)
 {
     switch(net_message->message_id)  {
-        case _net_message_id_ini_sync_mesg:
-            unitSyncMessage(net_message);
-            break;
-
         case _net_message_id_opcode_mesg:
             unitOpcodeMessage(net_message, size);
             break;

@@ -44,8 +44,6 @@ public:
 
     static void resetBlackBoard();
 
-    static void updateUnitLocs( void );
-
     static inline bool unitOccupiesLoc( iXY &unit_map_loc )
     {
         return( unit_loc_map.getBit( unit_map_loc.x, unit_map_loc.y ) );

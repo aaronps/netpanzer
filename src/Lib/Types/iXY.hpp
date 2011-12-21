@@ -98,6 +98,12 @@ struct iXY
         return x != a.x || y != a.y;
     }
 
+    // this for moves only, if is not straight directions will need checking
+    bool operator>=(const iXY &a) const
+    {
+        return x >= a.x && y >= a.y;
+    }
+
     // Negation.
     iXY operator -() const
     {

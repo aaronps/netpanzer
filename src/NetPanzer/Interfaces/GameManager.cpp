@@ -321,7 +321,7 @@ void GameManager::spawnPlayer( PlayerID player )
 
     //** Change the location of the view camera to the spawn point **
     iXY world_loc;
-    MapInterface::mapXYtoPointXY( spawn_point, &world_loc );
+    MapInterface::mapXYtoPointXY( spawn_point, world_loc );
     if ( PlayerInterface::getLocalPlayerIndex() == player )
     {
         WorldViewInterface::setCameraPosition( world_loc );
