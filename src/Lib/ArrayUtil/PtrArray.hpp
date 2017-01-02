@@ -156,7 +156,7 @@ public:
     {
         if ( ! length )
         {
-            return;
+            return false;
         }
         
         if ( ! last )
@@ -170,8 +170,10 @@ public:
             if ( newdata )
             {
                 data = newdata;
+		return true;
             }
         }
+	return false;
     }
     
     inline size_t getLastIndex() const { return last; }

@@ -379,7 +379,7 @@ void OptionsLayer::handleComponentEvents()
         case Events::CloseMessageLayer:
             setSubLayer(0);
             break;
-            
+#ifdef _WIN32
         case Events::UseDirectX:
         {
             gameconfig->video.setDirectX(checkbox_usedirectx->getState());
@@ -391,5 +391,6 @@ void OptionsLayer::handleComponentEvents()
             
             setSubLayer(message_layer);
         }
+#endif
     }
 }

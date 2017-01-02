@@ -56,7 +56,7 @@ private:
     network::TCPSocket * socket;
     
     filesystem::ReadFile * sending_file;
-    unsigned int sending_file_remain;
+    size_t sending_file_remain;
     
     uint8_t receive_buffer[HTTPSERVERSOCKET_RBUFFER_SIZE];
     int receive_length;
