@@ -51,7 +51,6 @@ def globSources(localenv, sourcePrefix, sourceDirs, pattern):
 
 def MakeStaticLib(localenv, libname, libdirs, pattern):
     sources = globSources(localenv, 'src/Lib', libdirs, pattern)
-    print ("Sources for ", libname, " are ", sources)
     localenv.StaticLibrary( libpath + libname, sources)
 
 
