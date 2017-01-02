@@ -51,6 +51,7 @@ def globSources(localenv, sourcePrefix, sourceDirs, pattern):
 
 def MakeStaticLib(localenv, libname, libdirs, pattern):
     sources = globSources(localenv, 'src/Lib', libdirs, pattern)
+    print ("Sources for ", libname, " are ", sources)
     localenv.StaticLibrary( libpath + libname, sources)
 
 
@@ -274,9 +275,12 @@ libpngenv.Append( CPPPATH = [ 'src/Lib/zlib-1.2.8' ] )
 MakeStaticLib(libpngenv, 'nplibpng', 'libpng-1.6.5', '*.c')
 
 # BUILDS FREETYPE
-
 freetypeenv.Append( CFLAGS = [ '-Isrc/Lib/freetype/include', '-DFT2_BUILD_LIBRARY'] )
-freetypeenv.StaticLibrary( libpath + 'npfreetype', [ 'src/Lib/freetype/ftsystem.c', 'src/Lib/freetype/ftinit.c', 'src/Lib/freetype/ftdebug.c','src/Lib/freetype/ftbase.c','src/Lib/freetype/truetype.c','src/Lib/freetype/raster.c','src/Lib/freetype/smooth.c','src/Lib/freetype/sfnt.c'] )
+freetypesources = [ 'src/Lib/freetype/ftsystem.c', 'src/Lib/freetype/ftinit.c', 'src/Lib/freetype/ftdebug.c','src/Lib/freetype/ftbase.c','src/Lib/freetype/truetype.c','src/Lib/freetype/raster.c','src/Lib/freetype/smooth.c','src/Lib/freetype/sfnt.c']
+freetypetarget = []
+for s in freetypesources:
+    freetypetarget.append(buildpath + s)
+freetypeenv.StaticLibrary( libpath + 'npfreetype', freetypetarget )
 
 # BUILDS 2D
 env.Append( CFLAGS = [ '-DZ_PREFIX=1' ] )
